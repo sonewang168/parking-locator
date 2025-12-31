@@ -928,13 +928,28 @@
                 }
                 st.textContent = '傳送到 LINE...';
                 const flex = createFlexMessage(urls);
-                const r = await fetch('https://api.line.me/v2/bot/message/push', {
+                
+                // 使用 Google Apps Script 繞過 CORS
+                const GAS_URL = 'https://script.google.com/macros/s/AKfycbzgReLQGBKBvktquEdHR7JhbJi9bWi4TPdbqN0UFcVJPSEb4-MMHCGPq2fsAoZ9iCLHEQ/exec';
+                
+                const r = await fetch(GAS_URL, {
                     method:'POST',
-                    headers:{'Content-Type':'application/json','Authorization':`Bearer ${CONFIG.LINE_CHANNEL_TOKEN}`},
-                    body:JSON.stringify({to:CONFIG.LINE_USER_ID,messages:[flex]})
+                    headers:{'Content-Type':'text/plain'},
+                    body:JSON.stringify({
+                        token: CONFIG.LINE_CHANNEL_TOKEN,
+                        userId: CONFIG.LINE_USER_ID,
+                        message: flex
+                    })
                 });
-                if(r.ok) { showToast('已成功傳送到 LINE！','success'); st.textContent='✓ 已傳送'; setTimeout(()=>st.textContent='',3000); }
-                else { const e = await r.json(); throw new Error(e.message||'傳送失敗'); }
+                
+                const data = await r.json();
+                if(data.success) { 
+                    showToast('已成功傳送到 LINE！','success'); 
+                    st.textContent='✓ 已傳送'; 
+                    setTimeout(()=>st.textContent='',3000); 
+                } else { 
+                    throw new Error(data.error||'傳送失敗'); 
+                }
             } catch(e) { showToast('傳送失敗：'+e.message,'error'); st.textContent=''; }
             finally { btn.disabled = false; }
         }
