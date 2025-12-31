@@ -16,11 +16,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         :root {
             --bg-primary: #0f0f1a;
@@ -28,13 +24,11 @@
             --bg-card: #16213e;
             --accent-primary: #e94560;
             --accent-secondary: #0f3460;
-            --accent-glow: #ff6b6b;
             --text-primary: #eaeaea;
             --text-secondary: #a0a0a0;
             --success: #00d26a;
             --warning: #ffc107;
             --gradient-1: linear-gradient(135deg, #e94560 0%, #0f3460 100%);
-            --gradient-2: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             --shadow-glow: 0 0 30px rgba(233, 69, 96, 0.3);
         }
 
@@ -50,10 +44,8 @@
         /* ===== 開機動畫 ===== */
         .splash-screen {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: #000;
             display: flex;
             align-items: center;
@@ -61,169 +53,102 @@
             z-index: 9999;
             transition: opacity 0.8s ease, visibility 0.8s ease;
         }
-
         .splash-screen.hide {
             opacity: 0;
             visibility: hidden;
+            pointer-events: none;
         }
-
         .splash-content {
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 40px;
         }
-
         .splash-logo {
             position: relative;
-            width: 140px;
-            height: 140px;
+            width: 160px; height: 160px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-
         .splash-text {
-            font-size: 72px;
+            font-size: 80px;
             font-weight: 900;
             color: #fff;
             z-index: 3;
-            text-shadow: 
-                0 0 20px rgba(255, 255, 255, 0.5),
-                0 0 40px rgba(255, 255, 255, 0.3),
-                0 0 60px rgba(255, 255, 255, 0.2);
+            text-shadow: 0 0 20px rgba(255,255,255,0.5), 0 0 40px rgba(255,255,255,0.3), 0 0 60px rgba(255,255,255,0.2);
             animation: textPulse 2s ease-in-out infinite;
         }
-
         @keyframes textPulse {
-            0%, 100% { 
-                opacity: 0.8;
-                text-shadow: 
-                    0 0 20px rgba(255, 255, 255, 0.3),
-                    0 0 40px rgba(255, 255, 255, 0.2),
-                    0 0 60px rgba(255, 255, 255, 0.1);
-            }
-            50% { 
-                opacity: 1;
-                text-shadow: 
-                    0 0 30px rgba(255, 255, 255, 0.8),
-                    0 0 60px rgba(255, 255, 255, 0.5),
-                    0 0 100px rgba(255, 255, 255, 0.3),
-                    0 0 150px rgba(200, 220, 255, 0.2);
-            }
+            0%, 100% { opacity: 0.7; text-shadow: 0 0 20px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.2); }
+            50% { opacity: 1; text-shadow: 0 0 30px rgba(255,255,255,0.9), 0 0 60px rgba(255,255,255,0.6), 0 0 100px rgba(255,255,255,0.4), 0 0 150px rgba(200,220,255,0.3); }
         }
-
         .splash-glow {
             position: absolute;
-            width: 100%;
-            height: 100%;
+            width: 100%; height: 100%;
             border-radius: 50%;
-            background: radial-gradient(circle, rgba(200, 220, 255, 0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(200,220,255,0.2) 0%, transparent 70%);
             animation: glowPulse 2s ease-in-out infinite;
             z-index: 1;
         }
-
         @keyframes glowPulse {
-            0%, 100% { 
-                transform: scale(1);
-                opacity: 0.5;
-            }
-            50% { 
-                transform: scale(1.5);
-                opacity: 1;
-            }
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.6); opacity: 1; }
         }
-
         .splash-ring {
             position: absolute;
-            width: 120px;
-            height: 120px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
+            width: 140px; height: 140px;
+            border: 2px solid rgba(255,255,255,0.2);
             border-radius: 50%;
             animation: ringExpand 2s ease-out infinite;
             z-index: 2;
         }
-
+        .splash-ring:nth-child(3) { animation-delay: 0.5s; }
+        .splash-ring:nth-child(4) { animation-delay: 1s; }
         @keyframes ringExpand {
-            0% { 
-                transform: scale(0.8);
-                opacity: 0.8;
-                border-color: rgba(255, 255, 255, 0.3);
-            }
-            100% { 
-                transform: scale(2);
-                opacity: 0;
-                border-color: rgba(255, 255, 255, 0);
-            }
+            0% { transform: scale(0.8); opacity: 0.8; border-color: rgba(255,255,255,0.4); }
+            100% { transform: scale(2.5); opacity: 0; border-color: rgba(255,255,255,0); }
         }
-
-        .splash-loading {
-            height: 20px;
-        }
-
         .splash-dots {
             display: flex;
-            gap: 8px;
+            gap: 10px;
         }
-
         .splash-dots span {
-            width: 8px;
-            height: 8px;
-            background: rgba(255, 255, 255, 0.3);
+            width: 10px; height: 10px;
+            background: rgba(255,255,255,0.3);
             border-radius: 50%;
             animation: dotPulse 1.4s ease-in-out infinite;
         }
-
         .splash-dots span:nth-child(1) { animation-delay: 0s; }
         .splash-dots span:nth-child(2) { animation-delay: 0.2s; }
         .splash-dots span:nth-child(3) { animation-delay: 0.4s; }
-
         @keyframes dotPulse {
-            0%, 80%, 100% { 
-                transform: scale(0.8);
-                background: rgba(255, 255, 255, 0.3);
-            }
-            40% { 
-                transform: scale(1.2);
-                background: rgba(255, 255, 255, 0.9);
-                box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-            }
+            0%, 80%, 100% { transform: scale(0.8); background: rgba(255,255,255,0.3); }
+            40% { transform: scale(1.3); background: rgba(255,255,255,1); box-shadow: 0 0 15px rgba(255,255,255,0.6); }
         }
 
-        /* ===== 背景裝飾 ===== */
+        /* 背景 */
         .bg-decoration {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-            overflow: hidden;
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none; z-index: 0; overflow: hidden;
         }
-
         .bg-decoration::before {
             content: '';
             position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(233, 69, 96, 0.08) 0%, transparent 50%);
+            top: -50%; right: -50%;
+            width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(233,69,96,0.08) 0%, transparent 50%);
             animation: pulse 8s ease-in-out infinite;
         }
-
         .bg-decoration::after {
             content: '';
             position: absolute;
-            bottom: -30%;
-            left: -30%;
-            width: 80%;
-            height: 80%;
-            background: radial-gradient(circle, rgba(15, 52, 96, 0.15) 0%, transparent 50%);
+            bottom: -30%; left: -30%;
+            width: 80%; height: 80%;
+            background: radial-gradient(circle, rgba(15,52,96,0.15) 0%, transparent 50%);
             animation: pulse 10s ease-in-out infinite reverse;
         }
-
         @keyframes pulse {
             0%, 100% { transform: scale(1); opacity: 0.5; }
             50% { transform: scale(1.1); opacity: 0.8; }
@@ -231,59 +156,38 @@
 
         /* 主容器 */
         .app-container {
-            position: relative;
-            z-index: 1;
+            position: relative; z-index: 1;
             max-width: 500px;
             margin: 0 auto;
             padding: 20px;
             padding-bottom: 100px;
         }
 
-        /* 頂部標題 */
-        .app-header {
-            text-align: center;
-            padding: 20px 0 30px;
-        }
-
+        /* 頂部 */
+        .app-header { text-align: center; padding: 20px 0 30px; }
         .app-logo {
-            width: 70px;
-            height: 70px;
+            width: 70px; height: 70px;
             margin: 0 auto 15px;
             background: var(--gradient-1);
             border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             box-shadow: var(--shadow-glow);
             animation: float 3s ease-in-out infinite;
         }
-
         @keyframes float {
             0%, 100% { transform: translateY(0); }
             50% { transform: translateY(-8px); }
         }
-
-        .app-logo svg {
-            width: 40px;
-            height: 40px;
-            fill: white;
-        }
-
+        .app-logo svg { width: 40px; height: 40px; fill: white; }
         .app-title {
-            font-size: 28px;
-            font-weight: 900;
+            font-size: 28px; font-weight: 900;
             background: var(--gradient-1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             letter-spacing: 2px;
         }
-
-        .app-subtitle {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
+        .app-subtitle { font-size: 14px; color: var(--text-secondary); margin-top: 5px; }
 
         /* 狀態卡片 */
         .status-card {
@@ -291,28 +195,22 @@
             border-radius: 24px;
             padding: 25px;
             margin-bottom: 20px;
-            border: 1px solid rgba(233, 69, 96, 0.2);
-            position: relative;
-            overflow: hidden;
+            border: 1px solid rgba(233,69,96,0.2);
+            position: relative; overflow: hidden;
         }
-
         .status-card::before {
             content: '';
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
+            top: 0; left: 0; right: 0;
             height: 3px;
             background: var(--gradient-1);
         }
-
         .status-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 20px;
         }
-
         .status-label {
             font-size: 14px;
             color: var(--text-secondary);
@@ -320,236 +218,121 @@
             align-items: center;
             gap: 8px;
         }
-
         .status-indicator {
-            width: 10px;
-            height: 10px;
+            width: 10px; height: 10px;
             border-radius: 50%;
             background: var(--text-secondary);
             animation: blink 2s ease-in-out infinite;
         }
-
         .status-indicator.active {
             background: var(--success);
             box-shadow: 0 0 10px var(--success);
         }
-
-        .status-indicator.warning {
-            background: var(--warning);
-            box-shadow: 0 0 10px var(--warning);
-        }
-
         @keyframes blink {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
+        .status-time { font-size: 13px; color: var(--text-secondary); }
 
-        .status-time {
-            font-size: 13px;
-            color: var(--text-secondary);
-        }
-
-        /* 無停車狀態 */
-        .no-parking {
-            text-align: center;
-            padding: 30px 0;
-        }
-
-        .no-parking-icon {
-            font-size: 60px;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-
-        .no-parking-text {
-            font-size: 18px;
-            color: var(--text-secondary);
-        }
+        /* 無停車 */
+        .no-parking { text-align: center; padding: 30px 0; }
+        .no-parking-icon { font-size: 60px; margin-bottom: 15px; opacity: 0.5; }
+        .no-parking-text { font-size: 18px; color: var(--text-secondary); }
 
         /* 停車資訊 */
-        .parking-info {
-            display: none;
-        }
-
-        .parking-info.show {
-            display: block;
-        }
-
+        .parking-info { display: none; }
+        .parking-info.show { display: block; }
         .parking-location {
             background: var(--bg-secondary);
             border-radius: 16px;
             padding: 15px;
             margin-bottom: 15px;
         }
-
         .location-row {
             display: flex;
             align-items: center;
             gap: 10px;
             margin-bottom: 8px;
         }
-
-        .location-row:last-child {
-            margin-bottom: 0;
-        }
-
+        .location-row:last-child { margin-bottom: 0; }
         .location-icon {
-            width: 36px;
-            height: 36px;
+            width: 36px; height: 36px;
             background: var(--accent-secondary);
             border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             flex-shrink: 0;
         }
-
-        .location-icon svg {
-            width: 20px;
-            height: 20px;
-            fill: var(--accent-primary);
-        }
-
-        .location-text {
-            flex: 1;
-            font-size: 14px;
-            color: var(--text-primary);
-            word-break: break-all;
-        }
-
-        .location-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            display: block;
-            margin-bottom: 2px;
-        }
+        .location-icon svg { width: 20px; height: 20px; fill: var(--accent-primary); }
+        .location-text { flex: 1; font-size: 14px; color: var(--text-primary); word-break: break-all; }
+        .location-label { font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 2px; }
 
         /* 計時器 */
-        .timer-display {
-            text-align: center;
-            padding: 20px 0;
-        }
-
+        .timer-display { text-align: center; padding: 20px 0; }
         .timer-value {
-            font-size: 48px;
-            font-weight: 900;
+            font-size: 48px; font-weight: 900;
             font-variant-numeric: tabular-nums;
             background: var(--gradient-1);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+        .timer-label { font-size: 14px; color: var(--text-secondary); margin-top: 5px; }
 
-        .timer-label {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
-
-        /* 提醒設定 */
+        /* 提醒 */
         .reminder-section {
             background: var(--bg-secondary);
             border-radius: 16px;
             padding: 15px;
             margin-top: 15px;
         }
-
         .reminder-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 12px;
         }
-
         .reminder-title {
-            font-size: 14px;
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            font-size: 14px; font-weight: 500;
+            display: flex; align-items: center; gap: 8px;
         }
-
-        .reminder-title svg {
-            width: 18px;
-            height: 18px;
-            fill: var(--warning);
-        }
-
-        .reminder-toggle {
-            position: relative;
-            width: 50px;
-            height: 28px;
-        }
-
-        .reminder-toggle input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
+        .reminder-title svg { width: 18px; height: 18px; fill: var(--warning); }
+        .reminder-toggle { position: relative; width: 50px; height: 28px; }
+        .reminder-toggle input { opacity: 0; width: 0; height: 0; }
         .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
+            position: absolute; cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
             background: var(--bg-card);
             border-radius: 28px;
             transition: 0.3s;
         }
-
         .toggle-slider::before {
             content: '';
             position: absolute;
-            width: 22px;
-            height: 22px;
-            left: 3px;
-            bottom: 3px;
+            width: 22px; height: 22px;
+            left: 3px; bottom: 3px;
             background: var(--text-secondary);
             border-radius: 50%;
             transition: 0.3s;
         }
-
-        .reminder-toggle input:checked + .toggle-slider {
-            background: var(--accent-primary);
-        }
-
-        .reminder-toggle input:checked + .toggle-slider::before {
-            transform: translateX(22px);
-            background: white;
-        }
-
-        .reminder-options {
-            display: none;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-
-        .reminder-options.show {
-            display: flex;
-        }
-
+        .reminder-toggle input:checked + .toggle-slider { background: var(--accent-primary); }
+        .reminder-toggle input:checked + .toggle-slider::before { transform: translateX(22px); background: white; }
+        .reminder-options { display: none; gap: 8px; flex-wrap: wrap; }
+        .reminder-options.show { display: flex; }
         .reminder-btn {
             padding: 8px 16px;
             background: var(--bg-card);
-            border: 1px solid rgba(233, 69, 96, 0.3);
+            border: 1px solid rgba(233,69,96,0.3);
             border-radius: 20px;
             color: var(--text-primary);
             font-size: 13px;
             cursor: pointer;
             transition: all 0.3s;
         }
-
-        .reminder-btn:hover, .reminder-btn.active {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-
+        .reminder-btn:hover, .reminder-btn.active { background: var(--accent-primary); border-color: var(--accent-primary); }
         .reminder-status {
             margin-top: 12px;
             padding: 10px;
-            background: rgba(255, 193, 7, 0.1);
+            background: rgba(255,193,7,0.1);
             border-radius: 10px;
             font-size: 13px;
             color: var(--warning);
@@ -557,22 +340,15 @@
             align-items: center;
             gap: 8px;
         }
+        .reminder-status.show { display: flex; }
 
-        .reminder-status.show {
-            display: flex;
-        }
-
-        /* 照片區域 */
-        .photo-section {
-            margin-top: 15px;
-        }
-
+        /* 照片 */
+        .photo-section { margin-top: 15px; }
         .photo-grid {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
             gap: 10px;
         }
-
         .photo-item {
             aspect-ratio: 1;
             border-radius: 12px;
@@ -581,44 +357,25 @@
             background: var(--bg-secondary);
             cursor: pointer;
         }
-
-        .photo-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
+        .photo-item img { width: 100%; height: 100%; object-fit: cover; }
         .photo-item .delete-photo {
             position: absolute;
-            top: 5px;
-            right: 5px;
-            width: 24px;
-            height: 24px;
-            background: rgba(0, 0, 0, 0.7);
+            top: 5px; right: 5px;
+            width: 24px; height: 24px;
+            background: rgba(0,0,0,0.7);
             border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             cursor: pointer;
             opacity: 0;
             transition: opacity 0.3s;
         }
-
-        .photo-item:hover .delete-photo {
-            opacity: 1;
-        }
-
-        .delete-photo svg {
-            width: 14px;
-            height: 14px;
-            fill: white;
-        }
-
+        .photo-item:hover .delete-photo { opacity: 1; }
+        .delete-photo svg { width: 14px; height: 14px; fill: white; }
         .add-photo-btn {
             aspect-ratio: 1;
             border-radius: 12px;
             background: var(--bg-secondary);
-            border: 2px dashed rgba(233, 69, 96, 0.3);
+            border: 2px dashed rgba(233,69,96,0.3);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -626,100 +383,70 @@
             cursor: pointer;
             transition: all 0.3s;
         }
+        .add-photo-btn:hover { border-color: var(--accent-primary); background: rgba(233,69,96,0.1); }
+        .add-photo-btn svg { width: 30px; height: 30px; fill: var(--text-secondary); margin-bottom: 5px; }
+        .add-photo-btn span { font-size: 12px; color: var(--text-secondary); }
 
-        .add-photo-btn:hover {
-            border-color: var(--accent-primary);
-            background: rgba(233, 69, 96, 0.1);
-        }
-
-        .add-photo-btn svg {
-            width: 30px;
-            height: 30px;
-            fill: var(--text-secondary);
-            margin-bottom: 5px;
-        }
-
-        .add-photo-btn span {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        /* LINE 傳送按鈕 */
+        /* LINE 按鈕 */
         .line-send-btn {
             width: 100%;
-            margin-top: 12px;
-            padding: 14px 20px;
+            margin-top: 15px;
+            padding: 16px 20px;
             background: linear-gradient(135deg, #06c755 0%, #05a847 100%);
             border: none;
             border-radius: 14px;
             color: white;
-            font-size: 15px;
-            font-weight: 600;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(6, 199, 85, 0.3);
+            box-shadow: 0 4px 20px rgba(6,199,85,0.35);
         }
+        .line-send-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(6,199,85,0.5); }
+        .line-send-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none !important; }
+        .line-send-btn svg { width: 24px; height: 24px; }
+        .line-send-status { font-size: 13px; font-weight: 500; margin-left: 5px; }
 
-        .line-send-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(6, 199, 85, 0.4);
+        /* 樓層/備註 */
+        .floor-section { margin-top: 15px; }
+        .floor-input-group { display: flex; gap: 10px; }
+        .floor-input, .note-input {
+            flex: 1;
+            padding: 12px 15px;
+            background: var(--bg-secondary);
+            border: 1px solid rgba(233,69,96,0.2);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.3s;
         }
+        .floor-input:focus, .note-input:focus { border-color: var(--accent-primary); }
+        .floor-input::placeholder, .note-input::placeholder { color: var(--text-secondary); }
+        .note-section { margin-top: 15px; }
+        .note-input { width: 100%; resize: none; }
 
-        .line-send-btn:active {
-            transform: translateY(0);
-        }
-
-        .line-send-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .line-send-btn svg {
-            width: 22px;
-            height: 22px;
-        }
-
-        .line-send-status {
-            font-size: 12px;
-            opacity: 0.9;
-        }
-
-        /* 地圖容器 */
+        /* 地圖 */
         .map-section {
             background: var(--bg-card);
             border-radius: 24px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid rgba(233, 69, 96, 0.2);
+            border: 1px solid rgba(233,69,96,0.2);
         }
-
         .section-title {
-            font-size: 16px;
-            font-weight: 700;
+            font-size: 16px; font-weight: 700;
             margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            display: flex; align-items: center; gap: 10px;
         }
-
-        .section-title svg {
-            width: 22px;
-            height: 22px;
-            fill: var(--accent-primary);
-        }
-
-        #map {
-            height: 250px;
-            border-radius: 16px;
-            overflow: hidden;
-            background: var(--bg-secondary);
-        }
-
+        .section-title svg { width: 22px; height: 22px; fill: var(--accent-primary); }
+        #map { height: 250px; border-radius: 16px; overflow: hidden; background: var(--bg-secondary); }
         .map-placeholder {
             height: 250px;
             border-radius: 16px;
@@ -730,14 +457,7 @@
             justify-content: center;
             color: var(--text-secondary);
         }
-
-        .map-placeholder svg {
-            width: 50px;
-            height: 50px;
-            fill: var(--text-secondary);
-            margin-bottom: 10px;
-            opacity: 0.5;
-        }
+        .map-placeholder svg { width: 50px; height: 50px; fill: var(--text-secondary); margin-bottom: 10px; opacity: 0.5; }
 
         /* 功能按鈕 */
         .action-buttons {
@@ -746,13 +466,13 @@
             gap: 12px;
             margin-top: 15px;
         }
-
         .action-btn {
             padding: 14px 20px;
             border-radius: 14px;
             border: none;
             font-size: 14px;
             font-weight: 600;
+            font-family: inherit;
             cursor: pointer;
             transition: all 0.3s;
             display: flex;
@@ -760,49 +480,22 @@
             justify-content: center;
             gap: 8px;
         }
-
-        .action-btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .action-btn.primary {
-            background: var(--gradient-1);
-            color: white;
-            box-shadow: var(--shadow-glow);
-        }
-
-        .action-btn.primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 30px rgba(233, 69, 96, 0.4);
-        }
-
+        .action-btn svg { width: 20px; height: 20px; }
         .action-btn.secondary {
             background: var(--bg-secondary);
             color: var(--text-primary);
-            border: 1px solid rgba(233, 69, 96, 0.3);
+            border: 1px solid rgba(233,69,96,0.3);
         }
-
-        .action-btn.secondary:hover {
-            background: var(--accent-secondary);
-        }
-
+        .action-btn.secondary:hover { background: var(--accent-secondary); }
         .action-btn.danger {
             background: transparent;
             color: var(--accent-primary);
             border: 1px solid var(--accent-primary);
         }
+        .action-btn.danger:hover { background: var(--accent-primary); color: white; }
+        .action-btn.full { grid-column: 1 / -1; }
 
-        .action-btn.danger:hover {
-            background: var(--accent-primary);
-            color: white;
-        }
-
-        .action-btn.full {
-            grid-column: 1 / -1;
-        }
-
-        /* 主要停車按鈕 */
+        /* 主停車按鈕 */
         .main-action {
             position: fixed;
             bottom: 30px;
@@ -810,16 +503,15 @@
             transform: translateX(-50%);
             z-index: 100;
         }
-
         .park-btn {
-            width: 180px;
-            height: 60px;
+            width: 180px; height: 60px;
             border-radius: 30px;
             border: none;
             background: var(--gradient-1);
             color: white;
             font-size: 18px;
             font-weight: 700;
+            font-family: inherit;
             cursor: pointer;
             box-shadow: var(--shadow-glow);
             transition: all 0.3s;
@@ -828,81 +520,44 @@
             justify-content: center;
             gap: 10px;
         }
-
-        .park-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 40px rgba(233, 69, 96, 0.5);
-        }
-
-        .park-btn:active {
-            transform: scale(0.98);
-        }
-
-        .park-btn svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
-        }
-
+        .park-btn:hover { transform: scale(1.05); box-shadow: 0 5px 40px rgba(233,69,96,0.5); }
+        .park-btn:active { transform: scale(0.98); }
+        .park-btn svg { width: 24px; height: 24px; fill: white; }
         .park-btn.parked {
             background: linear-gradient(135deg, #00d26a 0%, #00a854 100%);
-            box-shadow: 0 0 30px rgba(0, 210, 106, 0.3);
+            box-shadow: 0 0 30px rgba(0,210,106,0.3);
         }
 
-        /* 歷史記錄 */
+        /* 歷史 */
         .history-section {
             background: var(--bg-card);
             border-radius: 24px;
             padding: 20px;
             margin-bottom: 20px;
-            border: 1px solid rgba(233, 69, 96, 0.2);
+            border: 1px solid rgba(233,69,96,0.2);
         }
-
         .section-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             margin-bottom: 15px;
         }
-
-        .section-header .section-title {
-            margin-bottom: 0;
-        }
-
+        .section-header .section-title { margin-bottom: 0; }
         .clear-history-btn {
-            width: 36px;
-            height: 36px;
-            border-radius: 10px;
-            background: rgba(233, 69, 96, 0.1);
-            border: 1px solid rgba(233, 69, 96, 0.3);
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            background: rgba(233,69,96,0.1);
+            border: 1px solid rgba(233,69,96,0.3);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s;
         }
-
-        .clear-history-btn:hover {
-            background: var(--accent-primary);
-            border-color: var(--accent-primary);
-        }
-
-        .clear-history-btn svg {
-            width: 18px;
-            height: 18px;
-            fill: var(--accent-primary);
-            transition: fill 0.3s;
-        }
-
-        .clear-history-btn:hover svg {
-            fill: white;
-        }
-
-        .history-list {
-            max-height: 300px;
-            overflow-y: auto;
-        }
-
+        .clear-history-btn:hover { background: var(--accent-primary); border-color: var(--accent-primary); }
+        .clear-history-btn svg { width: 20px; height: 20px; fill: var(--accent-primary); transition: fill 0.3s; }
+        .clear-history-btn:hover svg { fill: white; }
+        .history-list { max-height: 300px; overflow-y: auto; }
         .history-item {
             background: var(--bg-secondary);
             border-radius: 12px;
@@ -911,32 +566,16 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-
-        .history-item:last-child {
-            margin-bottom: 0;
-        }
-
-        .history-item:hover {
-            background: var(--accent-secondary);
-        }
-
+        .history-item:last-child { margin-bottom: 0; }
+        .history-item:hover { background: var(--accent-secondary); }
         .history-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 8px;
         }
-
-        .history-date {
-            font-size: 14px;
-            font-weight: 600;
-        }
-
-        .history-duration {
-            font-size: 13px;
-            color: var(--accent-primary);
-        }
-
+        .history-date { font-size: 14px; font-weight: 600; }
+        .history-duration { font-size: 13px; color: var(--accent-primary); }
         .history-address {
             font-size: 13px;
             color: var(--text-secondary);
@@ -945,71 +584,26 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        .history-empty { text-align: center; padding: 30px; color: var(--text-secondary); }
 
-        .history-empty {
-            text-align: center;
-            padding: 30px;
-            color: var(--text-secondary);
-        }
-
-        /* 備註輸入 */
-        .note-section {
-            margin-top: 15px;
-        }
-
-        .note-input {
-            width: 100%;
-            padding: 12px 15px;
-            background: var(--bg-secondary);
-            border: 1px solid rgba(233, 69, 96, 0.2);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-family: inherit;
-            resize: none;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .note-input:focus {
-            border-color: var(--accent-primary);
-        }
-
-        .note-input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        /* 照片檢視 Modal */
+        /* Modal */
         .photo-modal {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.95);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
             z-index: 1000;
             display: none;
             align-items: center;
             justify-content: center;
         }
-
-        .photo-modal.show {
-            display: flex;
-        }
-
-        .photo-modal img {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 10px;
-        }
-
+        .photo-modal.show { display: flex; }
+        .photo-modal img { max-width: 90%; max-height: 90%; border-radius: 10px; }
         .photo-modal-close {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            width: 40px;
-            height: 40px;
-            background: rgba(255, 255, 255, 0.1);
+            top: 20px; right: 20px;
+            width: 40px; height: 40px;
+            background: rgba(255,255,255,0.1);
             border: none;
             border-radius: 50%;
             cursor: pointer;
@@ -1017,45 +611,9 @@
             align-items: center;
             justify-content: center;
         }
+        .photo-modal-close svg { width: 24px; height: 24px; fill: white; }
 
-        .photo-modal-close svg {
-            width: 24px;
-            height: 24px;
-            fill: white;
-        }
-
-        /* 樓層/區域標記 */
-        .floor-section {
-            margin-top: 15px;
-        }
-
-        .floor-input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        .floor-input {
-            flex: 1;
-            padding: 12px 15px;
-            background: var(--bg-secondary);
-            border: 1px solid rgba(233, 69, 96, 0.2);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-size: 14px;
-            font-family: inherit;
-            outline: none;
-            transition: border-color 0.3s;
-        }
-
-        .floor-input:focus {
-            border-color: var(--accent-primary);
-        }
-
-        .floor-input::placeholder {
-            color: var(--text-secondary);
-        }
-
-        /* Toast 通知 */
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 100px;
@@ -1065,56 +623,23 @@
             color: var(--text-primary);
             padding: 15px 25px;
             border-radius: 12px;
-            box-shadow: 0 5px 30px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 5px 30px rgba(0,0,0,0.3);
             z-index: 1001;
             opacity: 0;
             transition: all 0.3s;
-            border: 1px solid rgba(233, 69, 96, 0.3);
+            border: 1px solid rgba(233,69,96,0.3);
         }
+        .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--success); }
+        .toast.error { border-color: var(--accent-primary); }
 
-        .toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
+        #photoInput { display: none; }
+        .leaflet-container { background: var(--bg-secondary); }
 
-        .toast.success {
-            border-color: var(--success);
-        }
-
-        .toast.error {
-            border-color: var(--accent-primary);
-        }
-
-        /* 隱藏的檔案輸入 */
-        #photoInput {
-            display: none;
-        }
-
-        /* Leaflet 自訂樣式 */
-        .leaflet-container {
-            background: var(--bg-secondary);
-        }
-
-        .custom-marker {
-            background: var(--accent-primary);
-            border: 3px solid white;
-            border-radius: 50%;
-            box-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
-        }
-
-        /* 響應式 */
         @media (max-width: 380px) {
-            .app-container {
-                padding: 15px;
-            }
-            
-            .timer-value {
-                font-size: 40px;
-            }
-            
-            .action-buttons {
-                grid-template-columns: 1fr;
-            }
+            .app-container { padding: 15px; }
+            .timer-value { font-size: 40px; }
+            .action-buttons { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -1125,6 +650,8 @@
             <div class="splash-logo">
                 <span class="splash-text">停</span>
                 <div class="splash-glow"></div>
+                <div class="splash-ring"></div>
+                <div class="splash-ring"></div>
                 <div class="splash-ring"></div>
             </div>
             <div class="splash-loading">
@@ -1140,7 +667,6 @@
     <div class="bg-decoration"></div>
     
     <div class="app-container">
-        <!-- 頂部標題 -->
         <header class="app-header">
             <div class="app-logo">
                 <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
@@ -1149,7 +675,6 @@
             <p class="app-subtitle">GPS定位 • 拍照記錄 • 計時提醒</p>
         </header>
 
-        <!-- 狀態卡片 -->
         <div class="status-card">
             <div class="status-header">
                 <div class="status-label">
@@ -1159,21 +684,17 @@
                 <span class="status-time" id="statusTime"></span>
             </div>
 
-            <!-- 未停車狀態 -->
             <div class="no-parking" id="noParking">
                 <div class="no-parking-icon">🚗</div>
                 <div class="no-parking-text">點擊下方按鈕記錄停車位置</div>
             </div>
 
-            <!-- 已停車資訊 -->
             <div class="parking-info" id="parkingInfo">
-                <!-- 計時器 -->
                 <div class="timer-display">
                     <div class="timer-value" id="timerValue">00:00:00</div>
                     <div class="timer-label">已停車時間</div>
                 </div>
 
-                <!-- 位置資訊 -->
                 <div class="parking-location">
                     <div class="location-row">
                         <div class="location-icon">
@@ -1195,7 +716,6 @@
                     </div>
                 </div>
 
-                <!-- 樓層/區域 -->
                 <div class="floor-section">
                     <div class="floor-input-group">
                         <input type="text" class="floor-input" id="floorInput" placeholder="樓層 (如: B2)">
@@ -1203,12 +723,10 @@
                     </div>
                 </div>
 
-                <!-- 備註 -->
                 <div class="note-section">
                     <textarea class="note-input" id="noteInput" rows="2" placeholder="備註 (如: 紅色柱子旁邊、靠近電梯...)"></textarea>
                 </div>
 
-                <!-- 提醒設定 -->
                 <div class="reminder-section">
                     <div class="reminder-header">
                         <span class="reminder-title">
@@ -1233,7 +751,6 @@
                     </div>
                 </div>
 
-                <!-- 照片 -->
                 <div class="photo-section">
                     <div class="photo-grid" id="photoGrid">
                         <div class="add-photo-btn" id="addPhotoBtn">
@@ -1241,16 +758,16 @@
                             <span>拍照</span>
                         </div>
                     </div>
-                    <button class="line-send-btn" id="lineSendBtn">
-                        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.349 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
-                        <span>傳送到 LINE</span>
-                        <span class="line-send-status" id="lineSendStatus"></span>
-                    </button>
                 </div>
+
+                <button class="line-send-btn" id="lineSendBtn">
+                    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63h2.386c.349 0 .63.285.63.63 0 .349-.281.63-.63.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.349 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.078 9.436-6.975C23.176 14.393 24 12.458 24 10.314"/></svg>
+                    <span>傳送到 LINE</span>
+                    <span class="line-send-status" id="lineSendStatus"></span>
+                </button>
             </div>
         </div>
 
-        <!-- 地圖區域 -->
         <div class="map-section">
             <h3 class="section-title">
                 <svg viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/></svg>
@@ -1279,7 +796,6 @@
             </div>
         </div>
 
-        <!-- 歷史記錄 -->
         <div class="history-section">
             <div class="section-header">
                 <h3 class="section-title">
@@ -1296,7 +812,6 @@
         </div>
     </div>
 
-    <!-- 主停車按鈕 -->
     <div class="main-action">
         <button class="park-btn" id="parkBtn">
             <svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
@@ -1304,7 +819,6 @@
         </button>
     </div>
 
-    <!-- 照片 Modal -->
     <div class="photo-modal" id="photoModal">
         <button class="photo-modal-close" id="closeModal">
             <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" fill="white"/></svg>
@@ -1312,30 +826,21 @@
         <img id="modalImage" src="" alt="照片">
     </div>
 
-    <!-- Toast -->
     <div class="toast" id="toast"></div>
-
-    <!-- 隱藏的檔案輸入 -->
     <input type="file" id="photoInput" accept="image/*" capture="environment" multiple>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // ===== API 設定 =====
         const CONFIG = {
             IMGBB_API_KEY: '61f338d2b04495beb1366ee0a6935d46',
             LINE_CHANNEL_TOKEN: 'tj07C6lPMHXDQsbJKGHB0+k2B4j054lWgV1aZfD8FFXi+DtwQtlrMzAZggRsV/Vhc617wKOUEH9emcXjSANICwuRX/aoVfLYtvHuCggAbbnOnJLc7Fz6jVaNZU+CDC6oNl/Y+vLcbF5uUwN5dQ/HlAdB04t89/1O/w1cDnyilFU=',
             LINE_USER_ID: 'Ue1188dd604bd22e22bedefd2943b358d'
         };
 
-        // ===== 全域變數 =====
-        let currentParking = null;
-        let timerInterval = null;
-        let reminderTimeout = null;
-        let map = null;
-        let marker = null;
+        let currentParking = null, timerInterval = null, reminderTimeout = null, map = null, marker = null;
 
-        // ===== DOM 元素 =====
         const elements = {
+            splashScreen: document.getElementById('splashScreen'),
             statusIndicator: document.getElementById('statusIndicator'),
             statusText: document.getElementById('statusText'),
             statusTime: document.getElementById('statusTime'),
@@ -1352,7 +857,8 @@
             reminderStatus: document.getElementById('reminderStatus'),
             reminderStatusText: document.getElementById('reminderStatusText'),
             photoGrid: document.getElementById('photoGrid'),
-            addPhotoBtn: document.getElementById('addPhotoBtn'),
+            lineSendBtn: document.getElementById('lineSendBtn'),
+            lineSendStatus: document.getElementById('lineSendStatus'),
             mapPlaceholder: document.getElementById('mapPlaceholder'),
             mapElement: document.getElementById('map'),
             mapActions: document.getElementById('mapActions'),
@@ -1361,8 +867,6 @@
             endParkingBtn: document.getElementById('endParkingBtn'),
             historyList: document.getElementById('historyList'),
             clearHistoryBtn: document.getElementById('clearHistoryBtn'),
-            lineSendBtn: document.getElementById('lineSendBtn'),
-            lineSendStatus: document.getElementById('lineSendStatus'),
             parkBtn: document.getElementById('parkBtn'),
             parkBtnText: document.getElementById('parkBtnText'),
             photoModal: document.getElementById('photoModal'),
@@ -1372,929 +876,315 @@
             toast: document.getElementById('toast')
         };
 
-        // ===== 工具函數 =====
-        function showToast(message, type = 'info') {
-            elements.toast.textContent = message;
+        function showToast(msg, type='info') {
+            elements.toast.textContent = msg;
             elements.toast.className = `toast show ${type}`;
-            setTimeout(() => {
-                elements.toast.className = 'toast';
-            }, 3000);
+            setTimeout(() => elements.toast.className = 'toast', 3000);
         }
 
-        function formatTime(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
-            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        function formatTime(s) {
+            const h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = s%60;
+            return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${sec.toString().padStart(2,'0')}`;
         }
 
-        function formatDateTime(date) {
-            return new Date(date).toLocaleString('zh-TW', {
-                month: 'numeric',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
+        function formatDateTime(d) {
+            return new Date(d).toLocaleString('zh-TW', {month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'});
         }
 
         function formatDuration(ms) {
-            const minutes = Math.floor(ms / 60000);
-            if (minutes < 60) return `${minutes} 分鐘`;
-            const hours = Math.floor(minutes / 60);
-            const remainMinutes = minutes % 60;
-            return remainMinutes > 0 ? `${hours} 小時 ${remainMinutes} 分鐘` : `${hours} 小時`;
+            const m = Math.floor(ms/60000);
+            if (m < 60) return `${m} 分鐘`;
+            const h = Math.floor(m/60), rm = m%60;
+            return rm > 0 ? `${h} 小時 ${rm} 分鐘` : `${h} 小時`;
         }
 
-        // ===== 本地儲存 =====
-        function saveToStorage() {
-            localStorage.setItem('parkingData', JSON.stringify(currentParking));
+        function saveToStorage() { localStorage.setItem('parkingData', JSON.stringify(currentParking)); }
+        function loadFromStorage() { const d = localStorage.getItem('parkingData'); return d ? JSON.parse(d) : null; }
+        function getHistory() { const d = localStorage.getItem('parkingHistory'); return d ? JSON.parse(d) : []; }
+        function saveHistory(r) { const h = getHistory(); h.unshift(r); if(h.length>50)h.pop(); localStorage.setItem('parkingHistory',JSON.stringify(h)); }
+        function clearHistory() { if(!confirm('確定要清除所有歷史記錄嗎？'))return; localStorage.removeItem('parkingHistory'); renderHistory(); showToast('歷史記錄已清除','success'); }
+
+        async function uploadToImgBB(base64) {
+            const fd = new FormData();
+            fd.append('image', base64.replace(/^data:image\/\w+;base64,/,''));
+            fd.append('key', CONFIG.IMGBB_API_KEY);
+            const r = await fetch('https://api.imgbb.com/1/upload', {method:'POST',body:fd});
+            const d = await r.json();
+            if(d.success) return d.data.url;
+            throw new Error(d.error?.message||'上傳失敗');
         }
 
-        function loadFromStorage() {
-            const data = localStorage.getItem('parkingData');
-            return data ? JSON.parse(data) : null;
-        }
-
-        function getHistory() {
-            const data = localStorage.getItem('parkingHistory');
-            return data ? JSON.parse(data) : [];
-        }
-
-        function saveHistory(record) {
-            const history = getHistory();
-            history.unshift(record);
-            // 只保留最近 50 筆
-            if (history.length > 50) history.pop();
-            localStorage.setItem('parkingHistory', JSON.stringify(history));
-        }
-
-        function clearHistory() {
-            if (!confirm('確定要清除所有歷史記錄嗎？此操作無法復原！')) return;
-            localStorage.removeItem('parkingHistory');
-            renderHistory();
-            showToast('歷史記錄已清除', 'success');
-        }
-
-        // ===== ImgBB 上傳 =====
-        async function uploadToImgBB(base64Image) {
-            const formData = new FormData();
-            // 移除 data:image/xxx;base64, 前綴
-            const base64Data = base64Image.replace(/^data:image\/\w+;base64,/, '');
-            formData.append('image', base64Data);
-            formData.append('key', CONFIG.IMGBB_API_KEY);
-
-            try {
-                const response = await fetch('https://api.imgbb.com/1/upload', {
-                    method: 'POST',
-                    body: formData
-                });
-                const data = await response.json();
-                if (data.success) {
-                    return data.data.url;
-                } else {
-                    throw new Error(data.error?.message || '上傳失敗');
-                }
-            } catch (error) {
-                console.error('ImgBB upload error:', error);
-                throw error;
-            }
-        }
-
-        // ===== LINE Bot 推播 =====
         async function sendToLINE() {
-            if (!currentParking) {
-                showToast('請先記錄停車位置', 'error');
-                return;
-            }
-
-            const btn = elements.lineSendBtn;
-            const statusEl = elements.lineSendStatus;
-            
-            btn.disabled = true;
-            statusEl.textContent = '準備中...';
-
+            if(!currentParking) { showToast('請先記錄停車位置','error'); return; }
+            const btn = elements.lineSendBtn, st = elements.lineSendStatus;
+            btn.disabled = true; st.textContent = '準備中...';
             try {
-                // 上傳照片到 ImgBB
-                let imageUrls = [];
-                if (currentParking.photos && currentParking.photos.length > 0) {
-                    statusEl.textContent = '上傳照片中...';
-                    for (let i = 0; i < currentParking.photos.length; i++) {
-                        statusEl.textContent = `上傳照片 ${i + 1}/${currentParking.photos.length}...`;
-                        const url = await uploadToImgBB(currentParking.photos[i]);
-                        imageUrls.push(url);
+                let urls = [];
+                if(currentParking.photos?.length) {
+                    for(let i=0; i<currentParking.photos.length; i++) {
+                        st.textContent = `上傳照片 ${i+1}/${currentParking.photos.length}...`;
+                        urls.push(await uploadToImgBB(currentParking.photos[i]));
                     }
                 }
-
-                statusEl.textContent = '傳送到 LINE...';
-
-                // 建立 Flex Message
-                const flexMessage = createFlexMessage(imageUrls);
-
-                // 發送到 LINE
-                const response = await fetch('https://api.line.me/v2/bot/message/push', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${CONFIG.LINE_CHANNEL_TOKEN}`
-                    },
-                    body: JSON.stringify({
-                        to: CONFIG.LINE_USER_ID,
-                        messages: [flexMessage]
-                    })
+                st.textContent = '傳送到 LINE...';
+                const flex = createFlexMessage(urls);
+                const r = await fetch('https://api.line.me/v2/bot/message/push', {
+                    method:'POST',
+                    headers:{'Content-Type':'application/json','Authorization':`Bearer ${CONFIG.LINE_CHANNEL_TOKEN}`},
+                    body:JSON.stringify({to:CONFIG.LINE_USER_ID,messages:[flex]})
                 });
-
-                if (response.ok) {
-                    showToast('已成功傳送到 LINE！', 'success');
-                    statusEl.textContent = '✓ 已傳送';
-                    setTimeout(() => { statusEl.textContent = ''; }, 3000);
-                } else {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || '傳送失敗');
-                }
-
-            } catch (error) {
-                console.error('LINE send error:', error);
-                showToast('傳送失敗：' + error.message, 'error');
-                statusEl.textContent = '';
-            } finally {
-                btn.disabled = false;
-            }
+                if(r.ok) { showToast('已成功傳送到 LINE！','success'); st.textContent='✓ 已傳送'; setTimeout(()=>st.textContent='',3000); }
+                else { const e = await r.json(); throw new Error(e.message||'傳送失敗'); }
+            } catch(e) { showToast('傳送失敗：'+e.message,'error'); st.textContent=''; }
+            finally { btn.disabled = false; }
         }
 
-        function createFlexMessage(imageUrls) {
-            const parking = currentParking;
-            const elapsed = Math.floor((Date.now() - parking.startTime) / 1000);
-            const timeStr = formatTime(elapsed);
-            const dateStr = new Date(parking.startTime).toLocaleString('zh-TW');
-            
-            // 建立照片輪播
-            let imageContents = [];
-            if (imageUrls.length > 0) {
-                imageContents = imageUrls.map(url => ({
-                    type: 'image',
-                    url: url,
-                    size: 'full',
-                    aspectRatio: '1:1',
-                    aspectMode: 'cover'
-                }));
-            } else {
-                // 沒有照片時使用預設圖
-                imageContents = [{
-                    type: 'box',
-                    layout: 'vertical',
-                    contents: [{
-                        type: 'text',
-                        text: '🚗',
-                        size: '4xl',
-                        align: 'center',
-                        gravity: 'center'
-                    }],
-                    height: '200px',
-                    backgroundColor: '#1a1a2e',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                }];
-            }
-
-            // 資訊列表
-            const infoItems = [
-                {
-                    type: 'box',
-                    layout: 'horizontal',
-                    contents: [
-                        { type: 'text', text: '📍 地址', size: 'sm', color: '#8c8c8c', flex: 2 },
-                        { type: 'text', text: parking.address || '未知', size: 'sm', color: '#333333', flex: 5, wrap: true }
-                    ],
-                    margin: 'md'
-                },
-                {
-                    type: 'box',
-                    layout: 'horizontal',
-                    contents: [
-                        { type: 'text', text: '🕐 時間', size: 'sm', color: '#8c8c8c', flex: 2 },
-                        { type: 'text', text: dateStr, size: 'sm', color: '#333333', flex: 5 }
-                    ],
-                    margin: 'md'
-                },
-                {
-                    type: 'box',
-                    layout: 'horizontal',
-                    contents: [
-                        { type: 'text', text: '⏱️ 已停', size: 'sm', color: '#8c8c8c', flex: 2 },
-                        { type: 'text', text: timeStr, size: 'sm', color: '#e94560', flex: 5, weight: 'bold' }
-                    ],
-                    margin: 'md'
-                }
+        function createFlexMessage(urls) {
+            const p = currentParking, elapsed = Math.floor((Date.now()-p.startTime)/1000);
+            const timeStr = formatTime(elapsed), dateStr = new Date(p.startTime).toLocaleString('zh-TW');
+            const info = [
+                {type:'box',layout:'horizontal',contents:[{type:'text',text:'📍 地址',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:p.address||'未知',size:'sm',color:'#333333',flex:5,wrap:true}],margin:'md'},
+                {type:'box',layout:'horizontal',contents:[{type:'text',text:'🕐 時間',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:dateStr,size:'sm',color:'#333333',flex:5}],margin:'md'},
+                {type:'box',layout:'horizontal',contents:[{type:'text',text:'⏱️ 已停',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:timeStr,size:'sm',color:'#e94560',flex:5,weight:'bold'}],margin:'md'}
             ];
-
-            // 樓層區域
-            if (parking.floor || parking.zone) {
-                infoItems.push({
-                    type: 'box',
-                    layout: 'horizontal',
-                    contents: [
-                        { type: 'text', text: '🏢 位置', size: 'sm', color: '#8c8c8c', flex: 2 },
-                        { type: 'text', text: `${parking.floor || ''} ${parking.zone || ''}`.trim() || '-', size: 'sm', color: '#333333', flex: 5 }
-                    ],
-                    margin: 'md'
-                });
-            }
-
-            // 備註
-            if (parking.note) {
-                infoItems.push({
-                    type: 'box',
-                    layout: 'horizontal',
-                    contents: [
-                        { type: 'text', text: '📝 備註', size: 'sm', color: '#8c8c8c', flex: 2 },
-                        { type: 'text', text: parking.note, size: 'sm', color: '#333333', flex: 5, wrap: true }
-                    ],
-                    margin: 'md'
-                });
-            }
-
-            // 構建 Flex Message
-            const flexContent = {
-                type: 'bubble',
-                size: 'giga',
-                header: {
-                    type: 'box',
-                    layout: 'vertical',
-                    contents: [
-                        {
-                            type: 'text',
-                            text: '🚗 停車位置記錄',
-                            weight: 'bold',
-                            size: 'xl',
-                            color: '#ffffff'
-                        }
-                    ],
-                    backgroundColor: '#e94560',
-                    paddingAll: '15px'
-                },
-                hero: imageUrls.length > 0 ? {
-                    type: 'image',
-                    url: imageUrls[0],
-                    size: 'full',
-                    aspectRatio: '16:9',
-                    aspectMode: 'cover'
-                } : undefined,
-                body: {
-                    type: 'box',
-                    layout: 'vertical',
-                    contents: [
-                        {
-                            type: 'box',
-                            layout: 'vertical',
-                            contents: infoItems,
-                            paddingAll: '0px'
-                        },
-                        // 如果有多張照片，顯示縮圖
-                        ...(imageUrls.length > 1 ? [{
-                            type: 'box',
-                            layout: 'horizontal',
-                            contents: imageUrls.slice(1, 4).map(url => ({
-                                type: 'image',
-                                url: url,
-                                size: 'sm',
-                                aspectRatio: '1:1',
-                                aspectMode: 'cover',
-                                flex: 1
-                            })),
-                            margin: 'lg',
-                            spacing: 'sm'
-                        }] : [])
-                    ],
-                    paddingAll: '15px'
-                },
-                footer: {
-                    type: 'box',
-                    layout: 'vertical',
-                    contents: [
-                        {
-                            type: 'button',
-                            action: {
-                                type: 'uri',
-                                label: '📍 開啟 Google Maps 導航',
-                                uri: `https://www.google.com/maps/dir/?api=1&destination=${parking.lat},${parking.lng}&travelmode=walking`
-                            },
-                            style: 'primary',
-                            color: '#e94560',
-                            height: 'sm'
-                        },
-                        {
-                            type: 'button',
-                            action: {
-                                type: 'uri',
-                                label: '🗺️ 查看地圖位置',
-                                uri: `https://www.google.com/maps?q=${parking.lat},${parking.lng}`
-                            },
-                            style: 'secondary',
-                            height: 'sm',
-                            margin: 'sm'
-                        }
-                    ],
-                    paddingAll: '15px'
-                }
+            if(p.floor||p.zone) info.push({type:'box',layout:'horizontal',contents:[{type:'text',text:'🏢 位置',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:`${p.floor||''} ${p.zone||''}`.trim()||'-',size:'sm',color:'#333333',flex:5}],margin:'md'});
+            if(p.note) info.push({type:'box',layout:'horizontal',contents:[{type:'text',text:'📝 備註',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:p.note,size:'sm',color:'#333333',flex:5,wrap:true}],margin:'md'});
+            const flex = {
+                type:'bubble',size:'giga',
+                header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🚗 停車位置記錄',weight:'bold',size:'xl',color:'#ffffff'}],backgroundColor:'#e94560',paddingAll:'15px'},
+                body:{type:'box',layout:'vertical',contents:[{type:'box',layout:'vertical',contents:info,paddingAll:'0px'},...(urls.length>0?[{type:'box',layout:'horizontal',contents:urls.slice(0,3).map(u=>({type:'image',url:u,size:'sm',aspectRatio:'1:1',aspectMode:'cover',flex:1})),margin:'lg',spacing:'sm'}]:[])],paddingAll:'15px'},
+                footer:{type:'box',layout:'vertical',contents:[{type:'button',action:{type:'uri',label:'📍 開啟導航',uri:`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=walking`},style:'primary',color:'#e94560',height:'sm'},{type:'button',action:{type:'uri',label:'🗺️ 查看地圖',uri:`https://www.google.com/maps?q=${p.lat},${p.lng}`},style:'secondary',height:'sm',margin:'sm'}],paddingAll:'15px'}
             };
-
-            // 移除 undefined 的 hero
-            if (!flexContent.hero) delete flexContent.hero;
-
-            return {
-                type: 'flex',
-                altText: `停車位置：${parking.address || '未知位置'}`,
-                contents: flexContent
-            };
+            if(urls.length>0) flex.hero = {type:'image',url:urls[0],size:'full',aspectRatio:'16:9',aspectMode:'cover'};
+            return {type:'flex',altText:`停車位置：${p.address||'未知位置'}`,contents:flex};
         }
 
-        // ===== GPS 定位 =====
         async function getCurrentPosition() {
-            return new Promise((resolve, reject) => {
-                if (!navigator.geolocation) {
-                    reject(new Error('您的瀏覽器不支援 GPS 定位'));
-                    return;
-                }
-
+            return new Promise((res,rej) => {
+                if(!navigator.geolocation) { rej(new Error('您的瀏覽器不支援GPS定位')); return; }
                 navigator.geolocation.getCurrentPosition(
-                    position => resolve({
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude,
-                        accuracy: position.coords.accuracy
-                    }),
-                    error => {
-                        switch (error.code) {
-                            case error.PERMISSION_DENIED:
-                                reject(new Error('請允許存取位置權限'));
-                                break;
-                            case error.POSITION_UNAVAILABLE:
-                                reject(new Error('無法取得位置資訊'));
-                                break;
-                            case error.TIMEOUT:
-                                reject(new Error('定位逾時，請重試'));
-                                break;
-                            default:
-                                reject(new Error('定位失敗'));
-                        }
-                    },
-                    {
-                        enableHighAccuracy: true,
-                        timeout: 15000,
-                        maximumAge: 0
-                    }
+                    pos => res({lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy}),
+                    err => rej(new Error(err.code===1?'請允許存取位置權限':err.code===2?'無法取得位置資訊':'定位逾時，請重試')),
+                    {enableHighAccuracy:true,timeout:15000,maximumAge:0}
                 );
             });
         }
 
-        // ===== 反向地理編碼 =====
-        async function getAddress(lat, lng) {
+        async function getAddress(lat,lng) {
             try {
-                const response = await fetch(
-                    `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-TW`,
-                    { headers: { 'User-Agent': 'ParkingLocator/1.0' } }
-                );
-                const data = await response.json();
-                return data.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            } catch (e) {
-                return `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            }
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-TW`,{headers:{'User-Agent':'ParkingLocator/1.0'}});
+                const d = await r.json();
+                return d.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
+            } catch(e) { return `${lat.toFixed(6)}, ${lng.toFixed(6)}`; }
         }
 
-        // ===== 地圖功能 =====
-        function initMap(lat, lng) {
-            elements.mapPlaceholder.style.display = 'none';
-            elements.mapElement.style.display = 'block';
-            elements.mapActions.style.display = 'grid';
-
-            if (map) {
-                map.remove();
-            }
-
-            map = L.map('map').setView([lat, lng], 17);
-
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap'
-            }).addTo(map);
-
-            // 自訂標記圖示
-            const carIcon = L.divIcon({
-                className: 'custom-marker',
-                html: '<div style="width:20px;height:20px;background:#e94560;border:3px solid white;border-radius:50%;box-shadow:0 0 15px rgba(233,69,96,0.5);"></div>',
-                iconSize: [20, 20],
-                iconAnchor: [10, 10]
-            });
-
-            marker = L.marker([lat, lng], { icon: carIcon }).addTo(map);
+        function initMap(lat,lng) {
+            elements.mapPlaceholder.style.display='none';
+            elements.mapElement.style.display='block';
+            elements.mapActions.style.display='grid';
+            if(map) map.remove();
+            map = L.map('map').setView([lat,lng],17);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+            const icon = L.divIcon({className:'custom-marker',html:'<div style="width:20px;height:20px;background:#e94560;border:3px solid white;border-radius:50%;box-shadow:0 0 15px rgba(233,69,96,0.5);"></div>',iconSize:[20,20],iconAnchor:[10,10]});
+            marker = L.marker([lat,lng],{icon}).addTo(map);
             marker.bindPopup('🚗 我的車停在這裡').openPopup();
-
-            // 延遲修正地圖尺寸
-            setTimeout(() => map.invalidateSize(), 100);
+            setTimeout(()=>map.invalidateSize(),100);
         }
 
         function hideMap() {
-            elements.mapPlaceholder.style.display = 'flex';
-            elements.mapElement.style.display = 'none';
-            elements.mapActions.style.display = 'none';
-            if (map) {
-                map.remove();
-                map = null;
-            }
+            elements.mapPlaceholder.style.display='flex';
+            elements.mapElement.style.display='none';
+            elements.mapActions.style.display='none';
+            if(map){map.remove();map=null;}
         }
 
-        // ===== 計時器 =====
         function startTimer() {
-            if (timerInterval) clearInterval(timerInterval);
-            
-            timerInterval = setInterval(() => {
-                if (currentParking) {
-                    const elapsed = Math.floor((Date.now() - currentParking.startTime) / 1000);
-                    elements.timerValue.textContent = formatTime(elapsed);
-                }
-            }, 1000);
+            if(timerInterval)clearInterval(timerInterval);
+            timerInterval = setInterval(()=>{
+                if(currentParking) elements.timerValue.textContent = formatTime(Math.floor((Date.now()-currentParking.startTime)/1000));
+            },1000);
         }
+        function stopTimer() { if(timerInterval){clearInterval(timerInterval);timerInterval=null;} }
 
-        function stopTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
+        function requestNotificationPermission() { if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }
 
-        // ===== 提醒功能 =====
-        function requestNotificationPermission() {
-            if ('Notification' in window && Notification.permission === 'default') {
-                Notification.requestPermission();
-            }
-        }
-
-        function setReminder(minutes) {
-            if (reminderTimeout) clearTimeout(reminderTimeout);
-            
-            const ms = minutes * 60 * 1000;
-            const endTime = currentParking.startTime + ms;
-            const remaining = endTime - Date.now();
-
-            if (remaining <= 0) {
-                showToast('提醒時間已過', 'error');
-                return;
-            }
-
-            currentParking.reminder = { minutes, endTime };
-            saveToStorage();
-
-            elements.reminderStatus.classList.add('show');
-            updateReminderStatus();
-
-            reminderTimeout = setTimeout(() => {
-                triggerReminder();
-            }, remaining);
-
-            showToast(`已設定 ${minutes} 分鐘後提醒`, 'success');
+        function setReminder(min) {
+            if(reminderTimeout)clearTimeout(reminderTimeout);
+            const ms=min*60000, end=currentParking.startTime+ms, rem=end-Date.now();
+            if(rem<=0){showToast('提醒時間已過','error');return;}
+            currentParking.reminder={minutes:min,endTime:end}; saveToStorage();
+            elements.reminderStatus.classList.add('show'); updateReminderStatus();
+            reminderTimeout=setTimeout(triggerReminder,rem);
+            showToast(`已設定 ${min} 分鐘後提醒`,'success');
         }
 
         function updateReminderStatus() {
-            if (!currentParking?.reminder) return;
-
-            const remaining = currentParking.reminder.endTime - Date.now();
-            if (remaining <= 0) {
-                elements.reminderStatusText.textContent = '提醒時間已到！';
-                return;
-            }
-
-            const minutes = Math.ceil(remaining / 60000);
-            elements.reminderStatusText.textContent = `將在 ${minutes} 分鐘後提醒`;
+            if(!currentParking?.reminder)return;
+            const rem=currentParking.reminder.endTime-Date.now();
+            elements.reminderStatusText.textContent = rem<=0?'提醒時間已到！':`將在 ${Math.ceil(rem/60000)} 分鐘後提醒`;
         }
 
         function triggerReminder() {
-            // 發送通知
-            if ('Notification' in window && Notification.permission === 'granted') {
-                new Notification('停車提醒', {
-                    body: '您設定的停車時間即將到期！',
-                    icon: 'icon-192.png',
-                    vibrate: [200, 100, 200]
-                });
-            }
-
-            // 震動
-            if ('vibrate' in navigator) {
-                navigator.vibrate([200, 100, 200, 100, 200]);
-            }
-
-            showToast('⏰ 停車時間提醒！', 'warning');
-            elements.reminderStatusText.textContent = '提醒時間已到！';
+            if('Notification' in window && Notification.permission==='granted') new Notification('停車提醒',{body:'您設定的停車時間即將到期！',icon:'icon-192.png',vibrate:[200,100,200]});
+            if('vibrate' in navigator) navigator.vibrate([200,100,200,100,200]);
+            showToast('⏰ 停車時間提醒！','warning');
+            elements.reminderStatusText.textContent='提醒時間已到！';
         }
 
         function cancelReminder() {
-            if (reminderTimeout) {
-                clearTimeout(reminderTimeout);
-                reminderTimeout = null;
-            }
-            if (currentParking) {
-                delete currentParking.reminder;
-                saveToStorage();
-            }
+            if(reminderTimeout){clearTimeout(reminderTimeout);reminderTimeout=null;}
+            if(currentParking){delete currentParking.reminder;saveToStorage();}
             elements.reminderStatus.classList.remove('show');
-            document.querySelectorAll('.reminder-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.reminder-btn').forEach(b=>b.classList.remove('active'));
         }
 
-        // ===== 照片功能 =====
         function renderPhotos() {
-            const photos = currentParking?.photos || [];
+            const photos = currentParking?.photos||[];
             elements.photoGrid.innerHTML = '';
-
-            photos.forEach((photo, index) => {
+            photos.forEach((p,i)=>{
                 const item = document.createElement('div');
-                item.className = 'photo-item';
-                item.innerHTML = `
-                    <img src="${photo}" alt="停車照片 ${index + 1}">
-                    <div class="delete-photo" data-index="${index}">
-                        <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-                    </div>
-                `;
-                item.querySelector('img').addEventListener('click', () => viewPhoto(photo));
-                item.querySelector('.delete-photo').addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    deletePhoto(index);
-                });
+                item.className='photo-item';
+                item.innerHTML=`<img src="${p}" alt="照片${i+1}"><div class="delete-photo" data-index="${i}"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div>`;
+                item.querySelector('img').addEventListener('click',()=>viewPhoto(p));
+                item.querySelector('.delete-photo').addEventListener('click',e=>{e.stopPropagation();deletePhoto(i);});
                 elements.photoGrid.appendChild(item);
             });
-
-            // 新增照片按鈕（最多 6 張）
-            if (photos.length < 6) {
-                const addBtn = document.createElement('div');
-                addBtn.className = 'add-photo-btn';
-                addBtn.innerHTML = `
-                    <svg viewBox="0 0 24 24"><path d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"/></svg>
-                    <span>拍照</span>
-                `;
-                addBtn.addEventListener('click', () => elements.photoInput.click());
-                elements.photoGrid.appendChild(addBtn);
+            if(photos.length<6){
+                const add=document.createElement('div');
+                add.className='add-photo-btn';
+                add.innerHTML=`<svg viewBox="0 0 24 24"><path d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"/></svg><span>拍照</span>`;
+                add.addEventListener('click',()=>elements.photoInput.click());
+                elements.photoGrid.appendChild(add);
             }
         }
 
         function addPhotos(files) {
-            if (!currentParking) return;
-            if (!currentParking.photos) currentParking.photos = [];
-
-            const maxPhotos = 6;
-            const remaining = maxPhotos - currentParking.photos.length;
-
-            Array.from(files).slice(0, remaining).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    // 壓縮圖片
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.createElement('canvas');
-                        const maxSize = 800;
-                        let { width, height } = img;
-                        
-                        if (width > height && width > maxSize) {
-                            height = (height * maxSize) / width;
-                            width = maxSize;
-                        } else if (height > maxSize) {
-                            width = (width * maxSize) / height;
-                            height = maxSize;
-                        }
-
-                        canvas.width = width;
-                        canvas.height = height;
-                        const ctx = canvas.getContext('2d');
-                        ctx.drawImage(img, 0, 0, width, height);
-                        
-                        const compressed = canvas.toDataURL('image/jpeg', 0.7);
-                        currentParking.photos.push(compressed);
-                        saveToStorage();
-                        renderPhotos();
+            if(!currentParking)return;
+            if(!currentParking.photos)currentParking.photos=[];
+            const rem=6-currentParking.photos.length;
+            Array.from(files).slice(0,rem).forEach(f=>{
+                const reader=new FileReader();
+                reader.onload=e=>{
+                    const img=new Image();
+                    img.onload=()=>{
+                        const canvas=document.createElement('canvas'), max=800;
+                        let {width,height}=img;
+                        if(width>height&&width>max){height=(height*max)/width;width=max;}
+                        else if(height>max){width=(width*max)/height;height=max;}
+                        canvas.width=width;canvas.height=height;
+                        canvas.getContext('2d').drawImage(img,0,0,width,height);
+                        currentParking.photos.push(canvas.toDataURL('image/jpeg',0.7));
+                        saveToStorage();renderPhotos();
                     };
-                    img.src = e.target.result;
+                    img.src=e.target.result;
                 };
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(f);
             });
         }
 
-        function deletePhoto(index) {
-            if (!currentParking?.photos) return;
-            currentParking.photos.splice(index, 1);
-            saveToStorage();
-            renderPhotos();
-            showToast('照片已刪除');
-        }
+        function deletePhoto(i) { if(!currentParking?.photos)return; currentParking.photos.splice(i,1); saveToStorage(); renderPhotos(); showToast('照片已刪除'); }
+        function viewPhoto(src) { elements.modalImage.src=src; elements.photoModal.classList.add('show'); }
 
-        function viewPhoto(src) {
-            elements.modalImage.src = src;
-            elements.photoModal.classList.add('show');
-        }
-
-        // ===== 歷史記錄 =====
         function renderHistory() {
-            const history = getHistory();
-            
-            if (history.length === 0) {
-                elements.historyList.innerHTML = '<div class="history-empty">暫無停車記錄</div>';
-                return;
-            }
-
-            elements.historyList.innerHTML = history.map((record, index) => `
-                <div class="history-item" data-index="${index}">
-                    <div class="history-header">
-                        <span class="history-date">${formatDateTime(record.startTime)}</span>
-                        <span class="history-duration">${formatDuration(record.duration)}</span>
-                    </div>
-                    <div class="history-address">${record.address || '無地址資訊'}</div>
-                </div>
-            `).join('');
-
-            // 點擊歷史記錄跳轉到地圖
-            document.querySelectorAll('.history-item').forEach(item => {
-                item.addEventListener('click', () => {
-                    const index = parseInt(item.dataset.index);
-                    const record = history[index];
-                    if (record.lat && record.lng) {
-                        openNavigation(record.lat, record.lng);
-                    }
-                });
+            const h=getHistory();
+            if(!h.length){elements.historyList.innerHTML='<div class="history-empty">暫無停車記錄</div>';return;}
+            elements.historyList.innerHTML=h.map((r,i)=>`<div class="history-item" data-index="${i}"><div class="history-header"><span class="history-date">${formatDateTime(r.startTime)}</span><span class="history-duration">${formatDuration(r.duration)}</span></div><div class="history-address">${r.address||'無地址資訊'}</div></div>`).join('');
+            document.querySelectorAll('.history-item').forEach(item=>{
+                item.addEventListener('click',()=>{const r=h[parseInt(item.dataset.index)];if(r.lat&&r.lng)openNavigation(r.lat,r.lng);});
             });
         }
 
-        // ===== 導航與分享 =====
-        function openNavigation(lat, lng) {
-            // 嘗試使用 Google Maps
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`;
-            window.open(url, '_blank');
-        }
+        function openNavigation(lat,lng) { window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`,'_blank'); }
 
         async function shareLocation() {
-            if (!currentParking) return;
-
-            const { lat, lng, address } = currentParking;
-            const text = `我的車停在這裡：\n${address || '未知地址'}\n\n📍 Google Maps：\nhttps://www.google.com/maps?q=${lat},${lng}`;
-
-            if (navigator.share) {
-                try {
-                    await navigator.share({
-                        title: '我的停車位置',
-                        text: text
-                    });
-                } catch (e) {
-                    if (e.name !== 'AbortError') {
-                        copyToClipboard(text);
-                    }
-                }
-            } else {
-                copyToClipboard(text);
-            }
+            if(!currentParking)return;
+            const {lat,lng,address}=currentParking;
+            const text=`我的車停在這裡：\n${address||'未知地址'}\n\n📍 Google Maps：\nhttps://www.google.com/maps?q=${lat},${lng}`;
+            if(navigator.share){try{await navigator.share({title:'我的停車位置',text});}catch(e){if(e.name!=='AbortError')copyToClipboard(text);}}
+            else copyToClipboard(text);
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                showToast('位置已複製到剪貼簿', 'success');
-            }).catch(() => {
-                showToast('複製失敗', 'error');
-            });
-        }
+        function copyToClipboard(text) { navigator.clipboard.writeText(text).then(()=>showToast('位置已複製到剪貼簿','success')).catch(()=>showToast('複製失敗','error')); }
 
-        // ===== 主要功能 =====
         async function startParking() {
             try {
-                elements.parkBtn.disabled = true;
-                elements.parkBtnText.textContent = '定位中...';
-
-                const position = await getCurrentPosition();
-                const address = await getAddress(position.lat, position.lng);
-
-                currentParking = {
-                    startTime: Date.now(),
-                    lat: position.lat,
-                    lng: position.lng,
-                    accuracy: position.accuracy,
-                    address: address,
-                    photos: [],
-                    floor: '',
-                    zone: '',
-                    note: ''
-                };
-
-                saveToStorage();
-                updateUI(true);
-                initMap(position.lat, position.lng);
-                startTimer();
-                requestNotificationPermission();
-
-                showToast('停車位置已記錄！', 'success');
-
-            } catch (error) {
-                showToast(error.message, 'error');
-            } finally {
-                elements.parkBtn.disabled = false;
-                updateParkButton();
-            }
+                elements.parkBtn.disabled=true; elements.parkBtnText.textContent='定位中...';
+                const pos=await getCurrentPosition(), addr=await getAddress(pos.lat,pos.lng);
+                currentParking={startTime:Date.now(),lat:pos.lat,lng:pos.lng,accuracy:pos.accuracy,address:addr,photos:[],floor:'',zone:'',note:''};
+                saveToStorage();updateUI(true);initMap(pos.lat,pos.lng);startTimer();requestNotificationPermission();
+                showToast('停車位置已記錄！','success');
+            } catch(e) { showToast(e.message,'error'); }
+            finally { elements.parkBtn.disabled=false; updateParkButton(); }
         }
 
         function endParking() {
-            if (!currentParking) return;
-
-            // 確認
-            if (!confirm('確定要結束停車嗎？')) return;
-
-            // 儲存到歷史
-            const duration = Date.now() - currentParking.startTime;
-            saveHistory({
-                ...currentParking,
-                endTime: Date.now(),
-                duration: duration,
-                floor: elements.floorInput.value,
-                zone: elements.zoneInput.value,
-                note: elements.noteInput.value
-            });
-
-            // 清除
-            currentParking = null;
-            localStorage.removeItem('parkingData');
-            stopTimer();
-            cancelReminder();
-            hideMap();
-            updateUI(false);
-            renderHistory();
-
-            // 清空輸入
-            elements.floorInput.value = '';
-            elements.zoneInput.value = '';
-            elements.noteInput.value = '';
-
-            showToast('停車已結束', 'success');
+            if(!currentParking||!confirm('確定要結束停車嗎？'))return;
+            saveHistory({...currentParking,endTime:Date.now(),duration:Date.now()-currentParking.startTime,floor:elements.floorInput.value,zone:elements.zoneInput.value,note:elements.noteInput.value});
+            currentParking=null;localStorage.removeItem('parkingData');stopTimer();cancelReminder();hideMap();updateUI(false);renderHistory();
+            elements.floorInput.value='';elements.zoneInput.value='';elements.noteInput.value='';
+            showToast('停車已結束','success');
         }
 
-        function updateUI(isParked) {
-            if (isParked) {
-                elements.statusIndicator.classList.add('active');
-                elements.statusText.textContent = '停車中';
-                elements.statusTime.textContent = formatDateTime(currentParking.startTime);
-                elements.noParking.style.display = 'none';
-                elements.parkingInfo.classList.add('show');
-                elements.parkingAddress.textContent = currentParking.address;
-                elements.parkingCoords.textContent = `${currentParking.lat.toFixed(6)}, ${currentParking.lng.toFixed(6)}`;
-                elements.floorInput.value = currentParking.floor || '';
-                elements.zoneInput.value = currentParking.zone || '';
-                elements.noteInput.value = currentParking.note || '';
+        function updateUI(parked) {
+            if(parked){
+                elements.statusIndicator.classList.add('active');elements.statusText.textContent='停車中';elements.statusTime.textContent=formatDateTime(currentParking.startTime);
+                elements.noParking.style.display='none';elements.parkingInfo.classList.add('show');
+                elements.parkingAddress.textContent=currentParking.address;elements.parkingCoords.textContent=`${currentParking.lat.toFixed(6)}, ${currentParking.lng.toFixed(6)}`;
+                elements.floorInput.value=currentParking.floor||'';elements.zoneInput.value=currentParking.zone||'';elements.noteInput.value=currentParking.note||'';
                 renderPhotos();
             } else {
-                elements.statusIndicator.classList.remove('active');
-                elements.statusText.textContent = '尚未停車';
-                elements.statusTime.textContent = '';
-                elements.noParking.style.display = 'block';
-                elements.parkingInfo.classList.remove('show');
-                elements.timerValue.textContent = '00:00:00';
+                elements.statusIndicator.classList.remove('active');elements.statusText.textContent='尚未停車';elements.statusTime.textContent='';
+                elements.noParking.style.display='block';elements.parkingInfo.classList.remove('show');elements.timerValue.textContent='00:00:00';
             }
             updateParkButton();
         }
 
         function updateParkButton() {
-            if (currentParking) {
-                elements.parkBtn.classList.add('parked');
-                elements.parkBtnText.textContent = '找回我的車';
-                elements.parkBtn.querySelector('svg').innerHTML = '<path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>';
-            } else {
-                elements.parkBtn.classList.remove('parked');
-                elements.parkBtnText.textContent = '記錄停車';
-            }
+            if(currentParking){elements.parkBtn.classList.add('parked');elements.parkBtnText.textContent='找回我的車';}
+            else{elements.parkBtn.classList.remove('parked');elements.parkBtnText.textContent='記錄停車';}
         }
 
-        // ===== 自動儲存輸入 =====
         function setupAutoSave() {
-            ['floorInput', 'zoneInput', 'noteInput'].forEach(id => {
-                elements[id].addEventListener('input', () => {
-                    if (currentParking) {
-                        currentParking.floor = elements.floorInput.value;
-                        currentParking.zone = elements.zoneInput.value;
-                        currentParking.note = elements.noteInput.value;
-                        saveToStorage();
-                    }
+            ['floorInput','zoneInput','noteInput'].forEach(id=>{
+                elements[id].addEventListener('input',()=>{
+                    if(currentParking){currentParking.floor=elements.floorInput.value;currentParking.zone=elements.zoneInput.value;currentParking.note=elements.noteInput.value;saveToStorage();}
                 });
             });
         }
 
-        // ===== 事件綁定 =====
         function bindEvents() {
-            // 主按鈕
-            elements.parkBtn.addEventListener('click', () => {
-                if (currentParking) {
-                    // 導航到停車位
-                    openNavigation(currentParking.lat, currentParking.lng);
-                } else {
-                    startParking();
-                }
-            });
-
-            // 結束停車
-            elements.endParkingBtn.addEventListener('click', endParking);
-
-            // 導航
-            elements.navigateBtn.addEventListener('click', () => {
-                if (currentParking) {
-                    openNavigation(currentParking.lat, currentParking.lng);
-                }
-            });
-
-            // 分享
-            elements.shareBtn.addEventListener('click', shareLocation);
-
-            // 提醒開關
-            elements.reminderToggle.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    elements.reminderOptions.classList.add('show');
-                } else {
-                    elements.reminderOptions.classList.remove('show');
-                    cancelReminder();
-                }
-            });
-
-            // 提醒選項
-            document.querySelectorAll('.reminder-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    document.querySelectorAll('.reminder-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    setReminder(parseInt(btn.dataset.minutes));
-                });
-            });
-
-            // 照片輸入
-            elements.photoInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    addPhotos(e.target.files);
-                }
-                e.target.value = '';
-            });
-
-            // 關閉照片 Modal
-            elements.closeModal.addEventListener('click', () => {
-                elements.photoModal.classList.remove('show');
-            });
-
-            elements.photoModal.addEventListener('click', (e) => {
-                if (e.target === elements.photoModal) {
-                    elements.photoModal.classList.remove('show');
-                }
-            });
-
-            // 清除歷史記錄
-            elements.clearHistoryBtn.addEventListener('click', clearHistory);
-
-            // LINE 傳送
-            elements.lineSendBtn.addEventListener('click', sendToLINE);
+            elements.parkBtn.addEventListener('click',()=>{if(currentParking)openNavigation(currentParking.lat,currentParking.lng);else startParking();});
+            elements.endParkingBtn.addEventListener('click',endParking);
+            elements.navigateBtn.addEventListener('click',()=>{if(currentParking)openNavigation(currentParking.lat,currentParking.lng);});
+            elements.shareBtn.addEventListener('click',shareLocation);
+            elements.reminderToggle.addEventListener('change',e=>{if(e.target.checked)elements.reminderOptions.classList.add('show');else{elements.reminderOptions.classList.remove('show');cancelReminder();}});
+            document.querySelectorAll('.reminder-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.reminder-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');setReminder(parseInt(btn.dataset.minutes));});});
+            elements.photoInput.addEventListener('change',e=>{if(e.target.files.length>0)addPhotos(e.target.files);e.target.value='';});
+            elements.closeModal.addEventListener('click',()=>elements.photoModal.classList.remove('show'));
+            elements.photoModal.addEventListener('click',e=>{if(e.target===elements.photoModal)elements.photoModal.classList.remove('show');});
+            elements.clearHistoryBtn.addEventListener('click',clearHistory);
+            elements.lineSendBtn.addEventListener('click',sendToLINE);
         }
 
-        // ===== 初始化 =====
         function init() {
-            // 載入儲存的資料
-            currentParking = loadFromStorage();
-
-            if (currentParking) {
-                updateUI(true);
-                initMap(currentParking.lat, currentParking.lng);
-                startTimer();
-
-                // 恢復提醒狀態
-                if (currentParking.reminder) {
-                    const remaining = currentParking.reminder.endTime - Date.now();
-                    if (remaining > 0) {
-                        elements.reminderToggle.checked = true;
-                        elements.reminderOptions.classList.add('show');
-                        elements.reminderStatus.classList.add('show');
-                        
-                        const btn = document.querySelector(`.reminder-btn[data-minutes="${currentParking.reminder.minutes}"]`);
-                        if (btn) btn.classList.add('active');
-                        
-                        updateReminderStatus();
-                        reminderTimeout = setTimeout(triggerReminder, remaining);
+            currentParking=loadFromStorage();
+            if(currentParking){
+                updateUI(true);initMap(currentParking.lat,currentParking.lng);startTimer();
+                if(currentParking.reminder){
+                    const rem=currentParking.reminder.endTime-Date.now();
+                    if(rem>0){
+                        elements.reminderToggle.checked=true;elements.reminderOptions.classList.add('show');elements.reminderStatus.classList.add('show');
+                        const btn=document.querySelector(`.reminder-btn[data-minutes="${currentParking.reminder.minutes}"]`);if(btn)btn.classList.add('active');
+                        updateReminderStatus();reminderTimeout=setTimeout(triggerReminder,rem);
                     }
                 }
-            } else {
-                updateUI(false);
-            }
-
-            renderHistory();
-            bindEvents();
-            setupAutoSave();
-
-            // 定期更新提醒狀態
-            setInterval(updateReminderStatus, 60000);
+            } else updateUI(false);
+            renderHistory();bindEvents();setupAutoSave();setInterval(updateReminderStatus,60000);
         }
 
-        // 啟動
-        document.addEventListener('DOMContentLoaded', init);
-
-        // 開機動畫
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                document.getElementById('splashScreen').classList.add('hide');
-            }, 2000); // 2秒後淡出
-        });
-
-        // 註冊 Service Worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(console.error);
-        }
+        document.addEventListener('DOMContentLoaded',init);
+        window.addEventListener('load',()=>setTimeout(()=>elements.splashScreen.classList.add('hide'),2500));
+        if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(console.error);
     </script>
 </body>
 </html>
