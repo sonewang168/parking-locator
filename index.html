@@ -831,10 +831,13 @@
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // ============================================================
+        // 🔒 安全配置 - 所有敏感資訊都存放在 GAS Script Properties
+        // 前端只需要 GAS 的 URL，不包含任何 API Key
+        // ============================================================
         const CONFIG = {
-            IMGBB_API_KEY: '61f338d2b04495beb1366ee0a6935d46',
-            LINE_CHANNEL_TOKEN: 'tj07C6lPMHXDQsbJKGHB0+k2B4j054lWgV1aZfD8FFXi+DtwQtlrMzAZggRsV/Vhc617wKOUEH9emcXjSANICwuRX/aoVfLYtvHuCggAbbnOnJLc7Fz6jVaNZU+CDC6oNl/Y+vLcbF5uUwN5dQ/HlAdB04t89/1O/w1cDnyilFU=',
-            LINE_USER_ID: 'Ue1188dd604bd22e22bedefd2943b358d'
+            // 請將此 URL 替換為你部署的 GAS Web App URL
+            GAS_URL: 'https://script.google.com/macros/s/AKfycbyVQWbM1wl3rhRFb8N5P4mI9y2pkN4qqVxdu2cSgdRqxsje6HJep6wZWSNCThwry0T-2g/exec'
         };
 
         let currentParking = null, timerInterval = null, reminderTimeout = null, map = null, marker = null;
@@ -904,302 +907,558 @@
         function saveHistory(r) { const h = getHistory(); h.unshift(r); if(h.length>50)h.pop(); localStorage.setItem('parkingHistory',JSON.stringify(h)); }
         function clearHistory() { if(!confirm('確定要清除所有歷史記錄嗎？'))return; localStorage.removeItem('parkingHistory'); renderHistory(); showToast('歷史記錄已清除','success'); }
 
+        // ============================================================
+        // 🔒 透過 GAS 代理上傳圖片到 ImgBB（API Key 存放在 GAS）
+        // ============================================================
         async function uploadToImgBB(base64) {
-            const fd = new FormData();
-            fd.append('image', base64.replace(/^data:image\/\w+;base64,/,''));
-            fd.append('key', CONFIG.IMGBB_API_KEY);
-            const r = await fetch('https://api.imgbb.com/1/upload', {method:'POST',body:fd});
-            const d = await r.json();
-            if(d.success) return d.data.url;
-            throw new Error(d.error?.message||'上傳失敗');
+            const response = await fetch(CONFIG.GAS_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: JSON.stringify({
+                    action: 'uploadImage',
+                    image: base64.replace(/^data:image\/\w+;base64,/, '')
+                })
+            });
+            const data = await response.json();
+            if (data.success && data.url) {
+                return data.url;
+            }
+            throw new Error(data.error || '上傳失敗');
         }
 
+        // ============================================================
+        // 🔒 透過 GAS 代理傳送 LINE 訊息（Token 存放在 GAS）
+        // ============================================================
         async function sendToLINE() {
-            if(!currentParking) { showToast('請先記錄停車位置','error'); return; }
-            const btn = elements.lineSendBtn, st = elements.lineSendStatus;
-            btn.disabled = true; st.textContent = '準備中...';
+            if (!currentParking) { 
+                showToast('請先記錄停車位置', 'error'); 
+                return; 
+            }
+            
+            const btn = elements.lineSendBtn;
+            const st = elements.lineSendStatus;
+            btn.disabled = true;
+            st.textContent = '準備中...';
+            
             try {
-                let urls = [];
-                if(currentParking.photos?.length) {
-                    for(let i=0; i<currentParking.photos.length; i++) {
-                        st.textContent = `上傳照片 ${i+1}/${currentParking.photos.length}...`;
-                        urls.push(await uploadToImgBB(currentParking.photos[i]));
+                let imageUrls = [];
+                
+                // 上傳照片（如果有的話）
+                if (currentParking.photos?.length) {
+                    for (let i = 0; i < currentParking.photos.length; i++) {
+                        st.textContent = `上傳照片 ${i + 1}/${currentParking.photos.length}...`;
+                        const url = await uploadToImgBB(currentParking.photos[i]);
+                        imageUrls.push(url);
                     }
                 }
+                
                 st.textContent = '傳送到 LINE...';
-                const flex = createFlexMessage(urls);
                 
-                // 使用 Google Apps Script 繞過 CORS
-                const GAS_URL = 'https://script.google.com/macros/s/AKfycbzgReLQGBKBvktquEdHR7JhbJi9bWi4TPdbqN0UFcVJPSEb4-MMHCGPq2fsAoZ9iCLHEQ/exec';
+                // 準備 Flex Message
+                const flexMessage = createFlexMessage(imageUrls);
                 
-                const r = await fetch(GAS_URL, {
-                    method:'POST',
-                    headers:{'Content-Type':'text/plain'},
-                    body:JSON.stringify({
-                        token: CONFIG.LINE_CHANNEL_TOKEN,
-                        userId: CONFIG.LINE_USER_ID,
-                        message: flex
+                // 透過 GAS 傳送（不需要傳 token 和 userId，GAS 會自己處理）
+                const response = await fetch(CONFIG.GAS_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({
+                        action: 'sendLine',
+                        message: flexMessage
                     })
                 });
                 
-                const data = await r.json();
-                if(data.success) { 
-                    showToast('已成功傳送到 LINE！','success'); 
-                    st.textContent='✓ 已傳送'; 
-                    setTimeout(()=>st.textContent='',3000); 
-                } else { 
-                    throw new Error(data.error||'傳送失敗'); 
+                const data = await response.json();
+                
+                if (data.success) {
+                    showToast('已成功傳送到 LINE！', 'success');
+                    st.textContent = '✓ 已傳送';
+                    setTimeout(() => st.textContent = '', 3000);
+                } else {
+                    throw new Error(data.error || '傳送失敗');
                 }
-            } catch(e) { showToast('傳送失敗：'+e.message,'error'); st.textContent=''; }
-            finally { btn.disabled = false; }
+            } catch (e) {
+                showToast('傳送失敗：' + e.message, 'error');
+                st.textContent = '';
+            } finally {
+                btn.disabled = false;
+            }
         }
 
         function createFlexMessage(urls) {
-            const p = currentParking, elapsed = Math.floor((Date.now()-p.startTime)/1000);
-            const timeStr = formatTime(elapsed), dateStr = new Date(p.startTime).toLocaleString('zh-TW');
+            const p = currentParking;
+            const elapsed = Math.floor((Date.now() - p.startTime) / 1000);
+            const timeStr = formatTime(elapsed);
+            const dateStr = new Date(p.startTime).toLocaleString('zh-TW');
+            
             const info = [
                 {type:'box',layout:'horizontal',contents:[{type:'text',text:'📍 地址',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:p.address||'未知',size:'sm',color:'#333333',flex:5,wrap:true}],margin:'md'},
                 {type:'box',layout:'horizontal',contents:[{type:'text',text:'🕐 時間',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:dateStr,size:'sm',color:'#333333',flex:5}],margin:'md'},
                 {type:'box',layout:'horizontal',contents:[{type:'text',text:'⏱️ 已停',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:timeStr,size:'sm',color:'#e94560',flex:5,weight:'bold'}],margin:'md'}
             ];
-            if(p.floor||p.zone) info.push({type:'box',layout:'horizontal',contents:[{type:'text',text:'🏢 位置',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:`${p.floor||''} ${p.zone||''}`.trim()||'-',size:'sm',color:'#333333',flex:5}],margin:'md'});
-            if(p.note) info.push({type:'box',layout:'horizontal',contents:[{type:'text',text:'📝 備註',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:p.note,size:'sm',color:'#333333',flex:5,wrap:true}],margin:'md'});
+            
+            if (p.floor || p.zone) {
+                info.push({type:'box',layout:'horizontal',contents:[{type:'text',text:'🏢 位置',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:`${p.floor||''} ${p.zone||''}`.trim()||'-',size:'sm',color:'#333333',flex:5}],margin:'md'});
+            }
+            
+            if (p.note) {
+                info.push({type:'box',layout:'horizontal',contents:[{type:'text',text:'📝 備註',size:'sm',color:'#8c8c8c',flex:2},{type:'text',text:p.note,size:'sm',color:'#333333',flex:5,wrap:true}],margin:'md'});
+            }
+            
             const flex = {
-                type:'bubble',size:'giga',
-                header:{type:'box',layout:'vertical',contents:[{type:'text',text:'🚗 停車位置記錄',weight:'bold',size:'xl',color:'#ffffff'}],backgroundColor:'#e94560',paddingAll:'15px'},
-                body:{type:'box',layout:'vertical',contents:[{type:'box',layout:'vertical',contents:info,paddingAll:'0px'},...(urls.length>0?[{type:'box',layout:'horizontal',contents:urls.slice(0,3).map(u=>({type:'image',url:u,size:'sm',aspectRatio:'1:1',aspectMode:'cover',flex:1})),margin:'lg',spacing:'sm'}]:[])],paddingAll:'15px'},
-                footer:{type:'box',layout:'vertical',contents:[{type:'button',action:{type:'uri',label:'📍 開啟導航',uri:`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=walking`},style:'primary',color:'#e94560',height:'sm'},{type:'button',action:{type:'uri',label:'🗺️ 查看地圖',uri:`https://www.google.com/maps?q=${p.lat},${p.lng}`},style:'secondary',height:'sm',margin:'sm'}],paddingAll:'15px'}
+                type: 'bubble',
+                size: 'giga',
+                header: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [{type:'text',text:'🚗 停車位置記錄',weight:'bold',size:'xl',color:'#ffffff'}],
+                    backgroundColor: '#e94560',
+                    paddingAll: '15px'
+                },
+                body: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {type:'box',layout:'vertical',contents:info,paddingAll:'0px'},
+                        ...(urls.length > 0 ? [{
+                            type: 'box',
+                            layout: 'horizontal',
+                            contents: urls.slice(0, 3).map(u => ({
+                                type: 'image',
+                                url: u,
+                                size: 'sm',
+                                aspectRatio: '1:1',
+                                aspectMode: 'cover',
+                                flex: 1
+                            })),
+                            margin: 'lg',
+                            spacing: 'sm'
+                        }] : [])
+                    ],
+                    paddingAll: '15px'
+                },
+                footer: {
+                    type: 'box',
+                    layout: 'vertical',
+                    contents: [
+                        {type:'button',action:{type:'uri',label:'📍 開啟導航',uri:`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}&travelmode=walking`},style:'primary',color:'#e94560',height:'sm'},
+                        {type:'button',action:{type:'uri',label:'🗺️ 查看地圖',uri:`https://www.google.com/maps?q=${p.lat},${p.lng}`},style:'secondary',height:'sm',margin:'sm'}
+                    ],
+                    paddingAll: '15px'
+                }
             };
-            if(urls.length>0) flex.hero = {type:'image',url:urls[0],size:'full',aspectRatio:'16:9',aspectMode:'cover'};
+            
+            if (urls.length > 0) {
+                flex.hero = {type:'image',url:urls[0],size:'full',aspectRatio:'16:9',aspectMode:'cover'};
+            }
+            
             return {type:'flex',altText:`停車位置：${p.address||'未知位置'}`,contents:flex};
         }
 
         async function getCurrentPosition() {
-            return new Promise((res,rej) => {
-                if(!navigator.geolocation) { rej(new Error('您的瀏覽器不支援GPS定位')); return; }
+            return new Promise((res, rej) => {
+                if (!navigator.geolocation) { 
+                    rej(new Error('您的瀏覽器不支援GPS定位')); 
+                    return; 
+                }
                 navigator.geolocation.getCurrentPosition(
-                    pos => res({lat:pos.coords.latitude,lng:pos.coords.longitude,accuracy:pos.coords.accuracy}),
+                    pos => res({lat:pos.coords.latitude, lng:pos.coords.longitude, accuracy:pos.coords.accuracy}),
                     err => rej(new Error(err.code===1?'請允許存取位置權限':err.code===2?'無法取得位置資訊':'定位逾時，請重試')),
-                    {enableHighAccuracy:true,timeout:15000,maximumAge:0}
+                    {enableHighAccuracy:true, timeout:15000, maximumAge:0}
                 );
             });
         }
 
-        async function getAddress(lat,lng) {
+        async function getAddress(lat, lng) {
             try {
-                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-TW`,{headers:{'User-Agent':'ParkingLocator/1.0'}});
+                const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1&accept-language=zh-TW`, {headers:{'User-Agent':'ParkingLocator/1.0'}});
                 const d = await r.json();
                 return d.display_name || `${lat.toFixed(6)}, ${lng.toFixed(6)}`;
-            } catch(e) { return `${lat.toFixed(6)}, ${lng.toFixed(6)}`; }
+            } catch(e) { 
+                return `${lat.toFixed(6)}, ${lng.toFixed(6)}`; 
+            }
         }
 
-        function initMap(lat,lng) {
-            elements.mapPlaceholder.style.display='none';
-            elements.mapElement.style.display='block';
-            elements.mapActions.style.display='grid';
-            if(map) map.remove();
-            map = L.map('map').setView([lat,lng],17);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
-            const icon = L.divIcon({className:'custom-marker',html:'<div style="width:20px;height:20px;background:#e94560;border:3px solid white;border-radius:50%;box-shadow:0 0 15px rgba(233,69,96,0.5);"></div>',iconSize:[20,20],iconAnchor:[10,10]});
-            marker = L.marker([lat,lng],{icon}).addTo(map);
+        function initMap(lat, lng) {
+            elements.mapPlaceholder.style.display = 'none';
+            elements.mapElement.style.display = 'block';
+            elements.mapActions.style.display = 'grid';
+            if (map) map.remove();
+            map = L.map('map').setView([lat, lng], 17);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap'}).addTo(map);
+            const icon = L.divIcon({className:'custom-marker', html:'<div style="width:20px;height:20px;background:#e94560;border:3px solid white;border-radius:50%;box-shadow:0 0 15px rgba(233,69,96,0.5);"></div>', iconSize:[20,20], iconAnchor:[10,10]});
+            marker = L.marker([lat, lng], {icon}).addTo(map);
             marker.bindPopup('🚗 我的車停在這裡').openPopup();
-            setTimeout(()=>map.invalidateSize(),100);
+            setTimeout(() => map.invalidateSize(), 100);
         }
 
         function hideMap() {
-            elements.mapPlaceholder.style.display='flex';
-            elements.mapElement.style.display='none';
-            elements.mapActions.style.display='none';
-            if(map){map.remove();map=null;}
+            elements.mapPlaceholder.style.display = 'flex';
+            elements.mapElement.style.display = 'none';
+            elements.mapActions.style.display = 'none';
+            if (map) { map.remove(); map = null; }
         }
 
         function startTimer() {
-            if(timerInterval)clearInterval(timerInterval);
-            timerInterval = setInterval(()=>{
-                if(currentParking) elements.timerValue.textContent = formatTime(Math.floor((Date.now()-currentParking.startTime)/1000));
-            },1000);
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                if (currentParking) {
+                    elements.timerValue.textContent = formatTime(Math.floor((Date.now() - currentParking.startTime) / 1000));
+                }
+            }, 1000);
         }
-        function stopTimer() { if(timerInterval){clearInterval(timerInterval);timerInterval=null;} }
+        
+        function stopTimer() { 
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } 
+        }
 
-        function requestNotificationPermission() { if('Notification' in window && Notification.permission==='default') Notification.requestPermission(); }
+        function requestNotificationPermission() { 
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission(); 
+            }
+        }
 
         function setReminder(min) {
-            if(reminderTimeout)clearTimeout(reminderTimeout);
-            const ms=min*60000, end=currentParking.startTime+ms, rem=end-Date.now();
-            if(rem<=0){showToast('提醒時間已過','error');return;}
-            currentParking.reminder={minutes:min,endTime:end}; saveToStorage();
-            elements.reminderStatus.classList.add('show'); updateReminderStatus();
-            reminderTimeout=setTimeout(triggerReminder,rem);
-            showToast(`已設定 ${min} 分鐘後提醒`,'success');
+            if (reminderTimeout) clearTimeout(reminderTimeout);
+            const ms = min * 60000;
+            const end = currentParking.startTime + ms;
+            const rem = end - Date.now();
+            
+            if (rem <= 0) { 
+                showToast('提醒時間已過', 'error'); 
+                return; 
+            }
+            
+            currentParking.reminder = {minutes: min, endTime: end};
+            saveToStorage();
+            elements.reminderStatus.classList.add('show');
+            updateReminderStatus();
+            reminderTimeout = setTimeout(triggerReminder, rem);
+            showToast(`已設定 ${min} 分鐘後提醒`, 'success');
         }
 
         function updateReminderStatus() {
-            if(!currentParking?.reminder)return;
-            const rem=currentParking.reminder.endTime-Date.now();
-            elements.reminderStatusText.textContent = rem<=0?'提醒時間已到！':`將在 ${Math.ceil(rem/60000)} 分鐘後提醒`;
+            if (!currentParking?.reminder) return;
+            const rem = currentParking.reminder.endTime - Date.now();
+            elements.reminderStatusText.textContent = rem <= 0 ? '提醒時間已到！' : `將在 ${Math.ceil(rem / 60000)} 分鐘後提醒`;
         }
 
         function triggerReminder() {
-            if('Notification' in window && Notification.permission==='granted') new Notification('停車提醒',{body:'您設定的停車時間即將到期！',icon:'icon-192.png',vibrate:[200,100,200]});
-            if('vibrate' in navigator) navigator.vibrate([200,100,200,100,200]);
-            showToast('⏰ 停車時間提醒！','warning');
-            elements.reminderStatusText.textContent='提醒時間已到！';
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('停車提醒', {
+                    body: '您設定的停車時間即將到期！',
+                    icon: 'icon-192.png',
+                    vibrate: [200, 100, 200]
+                });
+            }
+            if ('vibrate' in navigator) navigator.vibrate([200, 100, 200, 100, 200]);
+            showToast('⏰ 停車時間提醒！', 'warning');
+            elements.reminderStatusText.textContent = '提醒時間已到！';
         }
 
         function cancelReminder() {
-            if(reminderTimeout){clearTimeout(reminderTimeout);reminderTimeout=null;}
-            if(currentParking){delete currentParking.reminder;saveToStorage();}
+            if (reminderTimeout) { clearTimeout(reminderTimeout); reminderTimeout = null; }
+            if (currentParking) { delete currentParking.reminder; saveToStorage(); }
             elements.reminderStatus.classList.remove('show');
-            document.querySelectorAll('.reminder-btn').forEach(b=>b.classList.remove('active'));
+            document.querySelectorAll('.reminder-btn').forEach(b => b.classList.remove('active'));
         }
 
         function renderPhotos() {
-            const photos = currentParking?.photos||[];
+            const photos = currentParking?.photos || [];
             elements.photoGrid.innerHTML = '';
-            photos.forEach((p,i)=>{
+            
+            photos.forEach((p, i) => {
                 const item = document.createElement('div');
-                item.className='photo-item';
-                item.innerHTML=`<img src="${p}" alt="照片${i+1}"><div class="delete-photo" data-index="${i}"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div>`;
-                item.querySelector('img').addEventListener('click',()=>viewPhoto(p));
-                item.querySelector('.delete-photo').addEventListener('click',e=>{e.stopPropagation();deletePhoto(i);});
+                item.className = 'photo-item';
+                item.innerHTML = `<img src="${p}" alt="照片${i+1}"><div class="delete-photo" data-index="${i}"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></div>`;
+                item.querySelector('img').addEventListener('click', () => viewPhoto(p));
+                item.querySelector('.delete-photo').addEventListener('click', e => { e.stopPropagation(); deletePhoto(i); });
                 elements.photoGrid.appendChild(item);
             });
-            if(photos.length<6){
-                const add=document.createElement('div');
-                add.className='add-photo-btn';
-                add.innerHTML=`<svg viewBox="0 0 24 24"><path d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"/></svg><span>拍照</span>`;
-                add.addEventListener('click',()=>elements.photoInput.click());
+            
+            if (photos.length < 6) {
+                const add = document.createElement('div');
+                add.className = 'add-photo-btn';
+                add.innerHTML = `<svg viewBox="0 0 24 24"><path d="M3 4V1h2v3h3v2H5v3H3V6H0V4h3zm3 6V7h3V4h7l1.83 2H21c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V10h3zm7 9c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-3.2-5c0 1.77 1.43 3.2 3.2 3.2s3.2-1.43 3.2-3.2-1.43-3.2-3.2-3.2-3.2 1.43-3.2 3.2z"/></svg><span>拍照</span>`;
+                add.addEventListener('click', () => elements.photoInput.click());
                 elements.photoGrid.appendChild(add);
             }
         }
 
         function addPhotos(files) {
-            if(!currentParking)return;
-            if(!currentParking.photos)currentParking.photos=[];
-            const rem=6-currentParking.photos.length;
-            Array.from(files).slice(0,rem).forEach(f=>{
-                const reader=new FileReader();
-                reader.onload=e=>{
-                    const img=new Image();
-                    img.onload=()=>{
-                        const canvas=document.createElement('canvas'), max=800;
-                        let {width,height}=img;
-                        if(width>height&&width>max){height=(height*max)/width;width=max;}
-                        else if(height>max){width=(width*max)/height;height=max;}
-                        canvas.width=width;canvas.height=height;
-                        canvas.getContext('2d').drawImage(img,0,0,width,height);
-                        currentParking.photos.push(canvas.toDataURL('image/jpeg',0.7));
-                        saveToStorage();renderPhotos();
+            if (!currentParking) return;
+            if (!currentParking.photos) currentParking.photos = [];
+            const rem = 6 - currentParking.photos.length;
+            
+            Array.from(files).slice(0, rem).forEach(f => {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const max = 800;
+                        let {width, height} = img;
+                        if (width > height && width > max) { height = (height * max) / width; width = max; }
+                        else if (height > max) { width = (width * max) / height; height = max; }
+                        canvas.width = width;
+                        canvas.height = height;
+                        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+                        currentParking.photos.push(canvas.toDataURL('image/jpeg', 0.7));
+                        saveToStorage();
+                        renderPhotos();
                     };
-                    img.src=e.target.result;
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(f);
             });
         }
 
-        function deletePhoto(i) { if(!currentParking?.photos)return; currentParking.photos.splice(i,1); saveToStorage(); renderPhotos(); showToast('照片已刪除'); }
-        function viewPhoto(src) { elements.modalImage.src=src; elements.photoModal.classList.add('show'); }
+        function deletePhoto(i) { 
+            if (!currentParking?.photos) return; 
+            currentParking.photos.splice(i, 1); 
+            saveToStorage(); 
+            renderPhotos(); 
+            showToast('照片已刪除'); 
+        }
+        
+        function viewPhoto(src) { 
+            elements.modalImage.src = src; 
+            elements.photoModal.classList.add('show'); 
+        }
 
         function renderHistory() {
-            const h=getHistory();
-            if(!h.length){elements.historyList.innerHTML='<div class="history-empty">暫無停車記錄</div>';return;}
-            elements.historyList.innerHTML=h.map((r,i)=>`<div class="history-item" data-index="${i}"><div class="history-header"><span class="history-date">${formatDateTime(r.startTime)}</span><span class="history-duration">${formatDuration(r.duration)}</span></div><div class="history-address">${r.address||'無地址資訊'}</div></div>`).join('');
-            document.querySelectorAll('.history-item').forEach(item=>{
-                item.addEventListener('click',()=>{const r=h[parseInt(item.dataset.index)];if(r.lat&&r.lng)openNavigation(r.lat,r.lng);});
+            const h = getHistory();
+            if (!h.length) {
+                elements.historyList.innerHTML = '<div class="history-empty">暫無停車記錄</div>';
+                return;
+            }
+            elements.historyList.innerHTML = h.map((r, i) => `
+                <div class="history-item" data-index="${i}">
+                    <div class="history-header">
+                        <span class="history-date">${formatDateTime(r.startTime)}</span>
+                        <span class="history-duration">${formatDuration(r.duration)}</span>
+                    </div>
+                    <div class="history-address">${r.address || '無地址資訊'}</div>
+                </div>
+            `).join('');
+            
+            document.querySelectorAll('.history-item').forEach(item => {
+                item.addEventListener('click', () => {
+                    const r = h[parseInt(item.dataset.index)];
+                    if (r.lat && r.lng) openNavigation(r.lat, r.lng);
+                });
             });
         }
 
-        function openNavigation(lat,lng) { window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`,'_blank'); }
-
-        async function shareLocation() {
-            if(!currentParking)return;
-            const {lat,lng,address}=currentParking;
-            const text=`我的車停在這裡：\n${address||'未知地址'}\n\n📍 Google Maps：\nhttps://www.google.com/maps?q=${lat},${lng}`;
-            if(navigator.share){try{await navigator.share({title:'我的停車位置',text});}catch(e){if(e.name!=='AbortError')copyToClipboard(text);}}
-            else copyToClipboard(text);
+        function openNavigation(lat, lng) { 
+            window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=walking`, '_blank'); 
         }
 
-        function copyToClipboard(text) { navigator.clipboard.writeText(text).then(()=>showToast('位置已複製到剪貼簿','success')).catch(()=>showToast('複製失敗','error')); }
+        async function shareLocation() {
+            if (!currentParking) return;
+            const {lat, lng, address} = currentParking;
+            const text = `我的車停在這裡：\n${address || '未知地址'}\n\n📍 Google Maps：\nhttps://www.google.com/maps?q=${lat},${lng}`;
+            
+            if (navigator.share) {
+                try {
+                    await navigator.share({title: '我的停車位置', text});
+                } catch(e) {
+                    if (e.name !== 'AbortError') copyToClipboard(text);
+                }
+            } else {
+                copyToClipboard(text);
+            }
+        }
+
+        function copyToClipboard(text) { 
+            navigator.clipboard.writeText(text)
+                .then(() => showToast('位置已複製到剪貼簿', 'success'))
+                .catch(() => showToast('複製失敗', 'error')); 
+        }
 
         async function startParking() {
             try {
-                elements.parkBtn.disabled=true; elements.parkBtnText.textContent='定位中...';
-                const pos=await getCurrentPosition(), addr=await getAddress(pos.lat,pos.lng);
-                currentParking={startTime:Date.now(),lat:pos.lat,lng:pos.lng,accuracy:pos.accuracy,address:addr,photos:[],floor:'',zone:'',note:''};
-                saveToStorage();updateUI(true);initMap(pos.lat,pos.lng);startTimer();requestNotificationPermission();
-                showToast('停車位置已記錄！','success');
-            } catch(e) { showToast(e.message,'error'); }
-            finally { elements.parkBtn.disabled=false; updateParkButton(); }
+                elements.parkBtn.disabled = true;
+                elements.parkBtnText.textContent = '定位中...';
+                const pos = await getCurrentPosition();
+                const addr = await getAddress(pos.lat, pos.lng);
+                
+                currentParking = {
+                    startTime: Date.now(),
+                    lat: pos.lat,
+                    lng: pos.lng,
+                    accuracy: pos.accuracy,
+                    address: addr,
+                    photos: [],
+                    floor: '',
+                    zone: '',
+                    note: ''
+                };
+                
+                saveToStorage();
+                updateUI(true);
+                initMap(pos.lat, pos.lng);
+                startTimer();
+                requestNotificationPermission();
+                showToast('停車位置已記錄！', 'success');
+            } catch(e) { 
+                showToast(e.message, 'error'); 
+            } finally { 
+                elements.parkBtn.disabled = false; 
+                updateParkButton(); 
+            }
         }
 
         function endParking() {
-            if(!currentParking||!confirm('確定要結束停車嗎？'))return;
-            saveHistory({...currentParking,endTime:Date.now(),duration:Date.now()-currentParking.startTime,floor:elements.floorInput.value,zone:elements.zoneInput.value,note:elements.noteInput.value});
-            currentParking=null;localStorage.removeItem('parkingData');stopTimer();cancelReminder();hideMap();updateUI(false);renderHistory();
-            elements.floorInput.value='';elements.zoneInput.value='';elements.noteInput.value='';
-            showToast('停車已結束','success');
+            if (!currentParking || !confirm('確定要結束停車嗎？')) return;
+            
+            saveHistory({
+                ...currentParking,
+                endTime: Date.now(),
+                duration: Date.now() - currentParking.startTime,
+                floor: elements.floorInput.value,
+                zone: elements.zoneInput.value,
+                note: elements.noteInput.value
+            });
+            
+            currentParking = null;
+            localStorage.removeItem('parkingData');
+            stopTimer();
+            cancelReminder();
+            hideMap();
+            updateUI(false);
+            renderHistory();
+            
+            elements.floorInput.value = '';
+            elements.zoneInput.value = '';
+            elements.noteInput.value = '';
+            
+            showToast('停車已結束', 'success');
         }
 
         function updateUI(parked) {
-            if(parked){
-                elements.statusIndicator.classList.add('active');elements.statusText.textContent='停車中';elements.statusTime.textContent=formatDateTime(currentParking.startTime);
-                elements.noParking.style.display='none';elements.parkingInfo.classList.add('show');
-                elements.parkingAddress.textContent=currentParking.address;elements.parkingCoords.textContent=`${currentParking.lat.toFixed(6)}, ${currentParking.lng.toFixed(6)}`;
-                elements.floorInput.value=currentParking.floor||'';elements.zoneInput.value=currentParking.zone||'';elements.noteInput.value=currentParking.note||'';
+            if (parked) {
+                elements.statusIndicator.classList.add('active');
+                elements.statusText.textContent = '停車中';
+                elements.statusTime.textContent = formatDateTime(currentParking.startTime);
+                elements.noParking.style.display = 'none';
+                elements.parkingInfo.classList.add('show');
+                elements.parkingAddress.textContent = currentParking.address;
+                elements.parkingCoords.textContent = `${currentParking.lat.toFixed(6)}, ${currentParking.lng.toFixed(6)}`;
+                elements.floorInput.value = currentParking.floor || '';
+                elements.zoneInput.value = currentParking.zone || '';
+                elements.noteInput.value = currentParking.note || '';
                 renderPhotos();
             } else {
-                elements.statusIndicator.classList.remove('active');elements.statusText.textContent='尚未停車';elements.statusTime.textContent='';
-                elements.noParking.style.display='block';elements.parkingInfo.classList.remove('show');elements.timerValue.textContent='00:00:00';
+                elements.statusIndicator.classList.remove('active');
+                elements.statusText.textContent = '尚未停車';
+                elements.statusTime.textContent = '';
+                elements.noParking.style.display = 'block';
+                elements.parkingInfo.classList.remove('show');
+                elements.timerValue.textContent = '00:00:00';
             }
             updateParkButton();
         }
 
         function updateParkButton() {
-            if(currentParking){elements.parkBtn.classList.add('parked');elements.parkBtnText.textContent='找回我的車';}
-            else{elements.parkBtn.classList.remove('parked');elements.parkBtnText.textContent='記錄停車';}
+            if (currentParking) {
+                elements.parkBtn.classList.add('parked');
+                elements.parkBtnText.textContent = '找回我的車';
+            } else {
+                elements.parkBtn.classList.remove('parked');
+                elements.parkBtnText.textContent = '記錄停車';
+            }
         }
 
         function setupAutoSave() {
-            ['floorInput','zoneInput','noteInput'].forEach(id=>{
-                elements[id].addEventListener('input',()=>{
-                    if(currentParking){currentParking.floor=elements.floorInput.value;currentParking.zone=elements.zoneInput.value;currentParking.note=elements.noteInput.value;saveToStorage();}
+            ['floorInput', 'zoneInput', 'noteInput'].forEach(id => {
+                elements[id].addEventListener('input', () => {
+                    if (currentParking) {
+                        currentParking.floor = elements.floorInput.value;
+                        currentParking.zone = elements.zoneInput.value;
+                        currentParking.note = elements.noteInput.value;
+                        saveToStorage();
+                    }
                 });
             });
         }
 
         function bindEvents() {
-            elements.parkBtn.addEventListener('click',()=>{if(currentParking)openNavigation(currentParking.lat,currentParking.lng);else startParking();});
-            elements.endParkingBtn.addEventListener('click',endParking);
-            elements.navigateBtn.addEventListener('click',()=>{if(currentParking)openNavigation(currentParking.lat,currentParking.lng);});
-            elements.shareBtn.addEventListener('click',shareLocation);
-            elements.reminderToggle.addEventListener('change',e=>{if(e.target.checked)elements.reminderOptions.classList.add('show');else{elements.reminderOptions.classList.remove('show');cancelReminder();}});
-            document.querySelectorAll('.reminder-btn').forEach(btn=>{btn.addEventListener('click',()=>{document.querySelectorAll('.reminder-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');setReminder(parseInt(btn.dataset.minutes));});});
-            elements.photoInput.addEventListener('change',e=>{if(e.target.files.length>0)addPhotos(e.target.files);e.target.value='';});
-            elements.closeModal.addEventListener('click',()=>elements.photoModal.classList.remove('show'));
-            elements.photoModal.addEventListener('click',e=>{if(e.target===elements.photoModal)elements.photoModal.classList.remove('show');});
-            elements.clearHistoryBtn.addEventListener('click',clearHistory);
-            elements.lineSendBtn.addEventListener('click',sendToLINE);
+            elements.parkBtn.addEventListener('click', () => {
+                if (currentParking) openNavigation(currentParking.lat, currentParking.lng);
+                else startParking();
+            });
+            
+            elements.endParkingBtn.addEventListener('click', endParking);
+            
+            elements.navigateBtn.addEventListener('click', () => {
+                if (currentParking) openNavigation(currentParking.lat, currentParking.lng);
+            });
+            
+            elements.shareBtn.addEventListener('click', shareLocation);
+            
+            elements.reminderToggle.addEventListener('change', e => {
+                if (e.target.checked) elements.reminderOptions.classList.add('show');
+                else { elements.reminderOptions.classList.remove('show'); cancelReminder(); }
+            });
+            
+            document.querySelectorAll('.reminder-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.reminder-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    setReminder(parseInt(btn.dataset.minutes));
+                });
+            });
+            
+            elements.photoInput.addEventListener('change', e => {
+                if (e.target.files.length > 0) addPhotos(e.target.files);
+                e.target.value = '';
+            });
+            
+            elements.closeModal.addEventListener('click', () => elements.photoModal.classList.remove('show'));
+            elements.photoModal.addEventListener('click', e => {
+                if (e.target === elements.photoModal) elements.photoModal.classList.remove('show');
+            });
+            
+            elements.clearHistoryBtn.addEventListener('click', clearHistory);
+            elements.lineSendBtn.addEventListener('click', sendToLINE);
         }
 
         function init() {
-            currentParking=loadFromStorage();
-            if(currentParking){
-                updateUI(true);initMap(currentParking.lat,currentParking.lng);startTimer();
-                if(currentParking.reminder){
-                    const rem=currentParking.reminder.endTime-Date.now();
-                    if(rem>0){
-                        elements.reminderToggle.checked=true;elements.reminderOptions.classList.add('show');elements.reminderStatus.classList.add('show');
-                        const btn=document.querySelector(`.reminder-btn[data-minutes="${currentParking.reminder.minutes}"]`);if(btn)btn.classList.add('active');
-                        updateReminderStatus();reminderTimeout=setTimeout(triggerReminder,rem);
+            currentParking = loadFromStorage();
+            
+            if (currentParking) {
+                updateUI(true);
+                initMap(currentParking.lat, currentParking.lng);
+                startTimer();
+                
+                if (currentParking.reminder) {
+                    const rem = currentParking.reminder.endTime - Date.now();
+                    if (rem > 0) {
+                        elements.reminderToggle.checked = true;
+                        elements.reminderOptions.classList.add('show');
+                        elements.reminderStatus.classList.add('show');
+                        const btn = document.querySelector(`.reminder-btn[data-minutes="${currentParking.reminder.minutes}"]`);
+                        if (btn) btn.classList.add('active');
+                        updateReminderStatus();
+                        reminderTimeout = setTimeout(triggerReminder, rem);
                     }
                 }
-            } else updateUI(false);
-            renderHistory();bindEvents();setupAutoSave();setInterval(updateReminderStatus,60000);
+            } else {
+                updateUI(false);
+            }
+            
+            renderHistory();
+            bindEvents();
+            setupAutoSave();
+            setInterval(updateReminderStatus, 60000);
         }
 
-        document.addEventListener('DOMContentLoaded',init);
-        window.addEventListener('load',()=>setTimeout(()=>elements.splashScreen.classList.add('hide'),2500));
-        if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(console.error);
+        document.addEventListener('DOMContentLoaded', init);
+        window.addEventListener('load', () => setTimeout(() => elements.splashScreen.classList.add('hide'), 2500));
+        
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(console.error);
+        }
     </script>
 </body>
 </html>
